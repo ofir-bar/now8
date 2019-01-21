@@ -5,5 +5,8 @@
     <string name="btn_new_ride">New Ride</string>
     <string name="edit_text_username">Username</string>
 
-
+    <!-- Errors -->
+    <string name="msg_no_perm">Now8 must have permission in order to work</string>
+    <string name="msg_no_location">Sorry, but we don\'t have a location!</string>
+    <string name="msg_location_service_unavailable">Please turn on location in your device settings</string>
 </resources>
