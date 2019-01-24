@@ -25,8 +25,8 @@ import static android.app.Activity.RESULT_OK;
 
 
 
-public class GenerateLinkFragment extends Fragment {
-    private static final String TAG = "GenerateLinkFragment";
+public class GenerateRideFragment extends Fragment {
+    private static final String TAG = "GenerateRideFragment";
     private static final String WHATSAPP_PACKAGE = "com.whatsapp";
     private static final String BASE_URL = "http://10.0.0.45:8000/";
     private static final String GOOGLE_MAPS_API_KEY = "AIzaSyCZi1vM-znzbHeys2suFJPeBJP5giqyS2U";

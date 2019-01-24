@@ -5,13 +5,8 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.location.Location;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 
 import com.facebook.device.yearclass.YearClass;
@@ -29,19 +24,18 @@ import com.google.android.gms.tasks.Task;
 public class MainActivity extends AbstractLocationPermissionActivity {
     private static final String TAG = "MainActivity";
 
-    private static final int REQUEST_RESOLUTION=61124;
+    private static final int REQUEST_REQUIRED_SETTINGS_FROM_USER = 61124;
     private static final String STATE_IN_RESOLUTION="inResolution";
-    private static final String[] PERMS=
+    private static final String[] REQUIRED_PERMISSIONS=
             {Manifest.permission.ACCESS_FINE_LOCATION};
-    private GenerateLinkFragment fragment;
-    private boolean isSystemSettingsChangeRequestInProgress=false;
-
+    private boolean isSystemSettingsChangeDialogInForeground =false;
+    private GenerateRideFragment generateRideFragment;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putBoolean(STATE_IN_RESOLUTION, isSystemSettingsChangeRequestInProgress);
+        outState.putBoolean(STATE_IN_RESOLUTION, isSystemSettingsChangeDialogInForeground);
     }
 
 
@@ -49,63 +43,55 @@ public class MainActivity extends AbstractLocationPermissionActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        logDeviceYear();
-
+        logDeviceHighEndYear();
     }
-
-
 
     /*
 
     By extending AbstractLocationPermissionActivity we need to implement:
-    getDesiredPermissions()
+    getRequiredUserPermissions()
     onReady()
-    onPermissionDenied()
+    onUserDeniedRequiredPermissions()
 
      */
 
-    //  getDesiredPermissions(), returning the array of permission names that the activity needs in order to proceed
     @Override
-    protected String[] getDesiredPermissions() {
-        return(PERMS);
+    protected String[] getRequiredUserPermissions() {
+        return(REQUIRED_PERMISSIONS);
     }
 
     //  onReady(), called by AbstractPermissionActivity once we get all of the requested permissions
     @Override
     protected void onReady(Bundle state) {
         if (state!=null) {
-            isSystemSettingsChangeRequestInProgress=state.getBoolean(STATE_IN_RESOLUTION, false);
+            isSystemSettingsChangeDialogInForeground =state.getBoolean(STATE_IN_RESOLUTION, false);
         }
 
-        fragment=
-                (GenerateLinkFragment) getSupportFragmentManager().findFragmentById(android.R.id.content);
+        generateRideFragment =
+                (GenerateRideFragment) getSupportFragmentManager().findFragmentById(android.R.id.content);
 
         // TODO: YOU SHOULD NOT USE commitAllowingStateLoss in production.
         // This is just a temporary fix. please see medium article:
         // https://medium.com/@elye.project/handling-illegalstateexception-can-not-perform-this-action-after-onsaveinstancestate-d4ee8b630066
 
-        if (fragment==null) {
-            fragment=new GenerateLinkFragment();
+        if (generateRideFragment == null) {
+            generateRideFragment = new GenerateRideFragment();
             getSupportFragmentManager().beginTransaction()
-                    .add(android.R.id.content, fragment).commitAllowingStateLoss();
-
+                    .add(android.R.id.content, generateRideFragment).commitAllowingStateLoss();
         }
 
-        if (!isSystemSettingsChangeRequestInProgress) {
-            isSystemSettingsChangeRequestInProgress=true;
-            Toast.makeText(this, "Hello nigger", Toast.LENGTH_LONG).show();
+        if (!isSystemSettingsChangeDialogInForeground) {
+            isSystemSettingsChangeDialogInForeground =true;
+            Toast.makeText(this, R.string.testing_required_settings_turned_on, Toast.LENGTH_LONG).show();
 
-            // AVOID ISSUES IF USER-LOCATION IS TURNED OFF
             // A LocationSettingsRequest makes a request to Play Services API to find out if the location settings on
-            // the device matches the requirements of a supplied LocationRequest
-
-            LocationSettingsRequest request=new LocationSettingsRequest.Builder()
+            LocationSettingsRequest getUserLocation=new LocationSettingsRequest.Builder()
                     .addLocationRequest(LocationRequest.create())
                     .build();
 
             LocationServices.getSettingsClient(this)
-                    .checkLocationSettings(request)
-                    .addOnCompleteListener(this::handleSettingsResponse);
+                    .checkLocationSettings(getUserLocation)
+                    .addOnCompleteListener(this::handleMissingSystemSettingsResponse);
                     /*
                     There is no addOnFailureListener here.
                     Page 4846 for explanation
@@ -113,27 +99,25 @@ public class MainActivity extends AbstractLocationPermissionActivity {
         }
     }
 
-    // ask the user for location or prompt him to enable location on the device system
-    private void handleSettingsResponse(Task<LocationSettingsResponse> task) {
+    // get the user location or prompt him to enable location on his device settings
+    private void handleMissingSystemSettingsResponse(Task<LocationSettingsResponse> task) {
         try {
-            LocationSettingsResponse response=task.getResult(ApiException.class);
-            LocationSettingsStates states=response.getLocationSettingsStates();
+            LocationSettingsResponse locationSettingsResponseTaskFromGoogleAPI=task.getResult(ApiException.class);
+            LocationSettingsStates userSettingsLocationState=locationSettingsResponseTaskFromGoogleAPI.getLocationSettingsStates();
 
-            if (states.isLocationPresent() && states.isLocationUsable()) {
-                findLocation(); // Location settings turned on - find the user location
+            if (userSettingsLocationState.isLocationPresent() && userSettingsLocationState.isLocationUsable()) {
+                findLocation();
             }
-            else {
-                deviceLocationServiceUnavailable(); // Location settings turned off - exit and inform the user
-            }
+
         }
-        catch (ApiException e) {
-            copeWithFailure(e); // something with call to .getResult() on Google Services API is fucked up, so get that exception for examination.
+        catch (ApiException fusedApiException) {
+            dealWithFusedApiRequestFailure(fusedApiException); // call to .getResult() on Google Services API returned exception, get that for examination.
         }
     }
 
     @SuppressLint("MissingPermission")
     private void findLocation() {
-        FusedLocationProviderClient client=
+        FusedLocationProviderClient googleFusedLocationProviderClient=
                 LocationServices.getFusedLocationProviderClient(this);
 
 
@@ -144,39 +128,35 @@ public class MainActivity extends AbstractLocationPermissionActivity {
         So, getLastLocation() returns a Task object instead.
          */
 
-        client.getLastLocation()
+        googleFusedLocationProviderClient.getLastLocation()
 
                 /*
                 On the Task object retrieved, we can either add a success or failure listener.
                 Success will bring us the
                  */
                 .addOnCompleteListener(this, this::useResult)
-                .addOnFailureListener(this, this::copeWithFailure);
+                .addOnFailureListener(this, this::dealWithFusedApiRequestFailure);
     }
-    private void deviceLocationServiceUnavailable() {
-        Toast.makeText(this, R.string.msg_location_service_unavailable, Toast.LENGTH_LONG)
-                .show();
-        finish();
-    }
-    private void copeWithFailure(Exception e) {
+
+    private void dealWithFusedApiRequestFailure(Exception e) {
 
         // Prompt the user a Google Services dialog to turn on his Location
         if (e instanceof ResolvableApiException) {
             try {
                 //Note: startResolutionForResult calls startActivityForResult under the hood
-                ((ResolvableApiException)e).startResolutionForResult(this, REQUEST_RESOLUTION);
+                ((ResolvableApiException)e).startResolutionForResult(this, REQUEST_REQUIRED_SETTINGS_FROM_USER);
                 return;
             }
-            catch (IntentSender.SendIntentException e1) {
-                e=e1;
+            catch (IntentSender.SendIntentException intentSenderException) {
+                e=intentSenderException;
             }
         }
 
-        // Couldn't get the user to turn on his location.
         Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-        Log.e(getClass().getSimpleName(), "Exception getting location", e);
+        Log.e(getClass().getSimpleName(), Integer.toString(R.string.msg_prompt_settings_change), e);
         finish();
     }
+
     private void useResult(Task<Location> task) {
         if (task.getResult()==null) {
             Toast
@@ -185,12 +165,12 @@ public class MainActivity extends AbstractLocationPermissionActivity {
             finish();
         }
         else {
-            fragment.printUserLocation(task.getResult());
+            generateRideFragment.printUserLocation(task.getResult());
         }
     }
-    //  onPermissionDenied(), called by AbstractPermissionActivity if the user did not grant us all of the requested permissions when we asked for them
+
     @Override
-    protected void onPermissionDenied() {
+    protected void onUserDeniedRequiredPermissions() {
         Toast
                 .makeText(this, R.string.msg_no_perm, Toast.LENGTH_LONG)
                 .show();
@@ -203,14 +183,16 @@ public class MainActivity extends AbstractLocationPermissionActivity {
                                     Intent data) {
 
         // Request to get the user location via Google Play API
-        if (requestCode==REQUEST_RESOLUTION) {
-            isSystemSettingsChangeRequestInProgress=false;
+        if (requestCode == REQUEST_REQUIRED_SETTINGS_FROM_USER) {
+            isSystemSettingsChangeDialogInForeground =false;
 
             if (resultCode==RESULT_OK) {
                 findLocation();
             }
             else {
-                deviceLocationServiceUnavailable();
+                Toast.makeText(this, R.string.msg_location_service_unavailable, Toast.LENGTH_LONG)
+                        .show();
+                finish();
             }
         }
         else {
@@ -218,9 +200,7 @@ public class MainActivity extends AbstractLocationPermissionActivity {
         }
     }
 
-
-    //Log the device high-end year for statistics
-    private void logDeviceYear(){
+    private void logDeviceHighEndYear(){
 
         int deviceYearClass = YearClass.get(getApplicationContext());
         Log.d(TAG,"Device year: " + String.valueOf(deviceYearClass) );

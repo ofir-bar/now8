@@ -1,5 +1,6 @@
 package com.now8.tool;
 
+import android.location.Location;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
@@ -7,11 +8,9 @@ import retrofit2.http.Path;
 
 public interface ServerInterface {
 
-    //Driver create a new ride
-    @POST("/new_ride/{username}")
-    Call<Ride> newRide(@Path("username") String username);
+    @POST("/new_ride/{username}/{location}")
+    Call<Ride> createNewRide(@Path("username") String username, @Path("location")Location location);
 
-    //User join a ride
-    @POST("/join_ride/{username}/{uid}")
-    Call<Ride> joinRide(@Path("username") String username, @Path("uid") String uid);
+    @POST("/join_ride/{username}/{location}/{uid}")
+    Call<Ride> joinRide(@Path("username") String username, @Path("location")Location location, @Path("uid") String uid);
 }
