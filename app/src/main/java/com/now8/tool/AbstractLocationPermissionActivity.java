@@ -18,28 +18,29 @@ abstract public class AbstractLocationPermissionActivity
     abstract protected void onUserDeniedRequiredPermissions();
     abstract protected void onReady(Bundle state);
 
-    private static final int REQUEST_REQUIRED_PERMISSIONS_FROM_USER =61125;
-    private static final String STATE_IN_PERMISSION="inPermission";
-    private boolean isPermissionRequestDialogInForeground =false;
-    private Bundle generateRideFragmentState;
+    private static final int REQUEST_REQUIRED_PERMISSIONS_FROM_USER = 61125;
+
+    private static final String REQUEST_PERMISSIONS_DIALOG_KEY = null;
+    private boolean isRequestPermissionDialogInForeground = false;
+    private Bundle createRideFragmentState;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        this.generateRideFragmentState = savedInstanceState;
+        this.createRideFragmentState = savedInstanceState;
 
-        if (generateRideFragmentState != null) {
-            isPermissionRequestDialogInForeground = generateRideFragmentState.getBoolean(STATE_IN_PERMISSION, false);
+        if (createRideFragmentState != null) {
+            isRequestPermissionDialogInForeground = createRideFragmentState.getBoolean(REQUEST_PERMISSIONS_DIALOG_KEY);
         }
 
         if (hasAllRequiredPermissions(getRequiredUserPermissions())) {
-            onReady(generateRideFragmentState);
+            onReady(createRideFragmentState);
         }
 
-        else if (!isPermissionRequestDialogInForeground) {
-            isPermissionRequestDialogInForeground =true;
+        else if (!isRequestPermissionDialogInForeground) {
+            isRequestPermissionDialogInForeground =true;
 
 
             ActivityCompat
@@ -55,12 +56,12 @@ abstract public class AbstractLocationPermissionActivity
                                            @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
 
-        isPermissionRequestDialogInForeground = false;
+        isRequestPermissionDialogInForeground = false;
 
         if (requestCode== REQUEST_REQUIRED_PERMISSIONS_FROM_USER) {
 
             if (hasAllRequiredPermissions(getRequiredUserPermissions())) {
-                onReady(generateRideFragmentState);
+                onReady(createRideFragmentState);
             }
             else {
                 onUserDeniedRequiredPermissions();
@@ -72,7 +73,7 @@ abstract public class AbstractLocationPermissionActivity
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putBoolean(STATE_IN_PERMISSION, isPermissionRequestDialogInForeground);
+        outState.putBoolean(REQUEST_PERMISSIONS_DIALOG_KEY, isRequestPermissionDialogInForeground);
     }
 
     private boolean hasAllRequiredPermissions(String[] permissionsList) {

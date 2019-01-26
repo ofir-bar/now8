@@ -29,7 +29,7 @@ public class MainActivity extends AbstractLocationPermissionActivity {
     private static final String[] REQUIRED_PERMISSIONS=
             {Manifest.permission.ACCESS_FINE_LOCATION};
     private boolean isSystemSettingsChangeDialogInForeground =false;
-    private GenerateRideFragment generateRideFragment;
+    private CreateRideFragment generateRideFragment;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -68,21 +68,21 @@ public class MainActivity extends AbstractLocationPermissionActivity {
         }
 
         generateRideFragment =
-                (GenerateRideFragment) getSupportFragmentManager().findFragmentById(android.R.id.content);
+                (CreateRideFragment) getSupportFragmentManager().findFragmentById(android.R.id.content);
 
         // TODO: YOU SHOULD NOT USE commitAllowingStateLoss in production.
         // This is just a temporary fix. please see medium article:
         // https://medium.com/@elye.project/handling-illegalstateexception-can-not-perform-this-action-after-onsaveinstancestate-d4ee8b630066
 
         if (generateRideFragment == null) {
-            generateRideFragment = new GenerateRideFragment();
+            generateRideFragment = new CreateRideFragment();
             getSupportFragmentManager().beginTransaction()
                     .add(android.R.id.content, generateRideFragment).commitAllowingStateLoss();
         }
 
         if (!isSystemSettingsChangeDialogInForeground) {
             isSystemSettingsChangeDialogInForeground =true;
-            Toast.makeText(this, R.string.testing_required_settings_turned_on, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, R.string.test_required_settings_turned_on, Toast.LENGTH_LONG).show();
 
             // A LocationSettingsRequest makes a request to Play Services API to find out if the location settings on
             LocationSettingsRequest getUserLocation=new LocationSettingsRequest.Builder()
@@ -153,14 +153,14 @@ public class MainActivity extends AbstractLocationPermissionActivity {
         }
 
         Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-        Log.e(getClass().getSimpleName(), Integer.toString(R.string.msg_prompt_settings_change), e);
+        Log.e(getClass().getSimpleName(), Integer.toString(R.string.err_prompt_settings_change), e);
         finish();
     }
 
     private void useResult(Task<Location> task) {
         if (task.getResult()==null) {
             Toast
-                    .makeText(this, R.string.msg_no_location, Toast.LENGTH_LONG)
+                    .makeText(this, R.string.err_no_location, Toast.LENGTH_LONG)
                     .show();
             finish();
         }
@@ -172,7 +172,7 @@ public class MainActivity extends AbstractLocationPermissionActivity {
     @Override
     protected void onUserDeniedRequiredPermissions() {
         Toast
-                .makeText(this, R.string.msg_no_perm, Toast.LENGTH_LONG)
+                .makeText(this, R.string.err_no_perm, Toast.LENGTH_LONG)
                 .show();
         finish();
     }
@@ -190,7 +190,7 @@ public class MainActivity extends AbstractLocationPermissionActivity {
                 findLocation();
             }
             else {
-                Toast.makeText(this, R.string.msg_location_service_unavailable, Toast.LENGTH_LONG)
+                Toast.makeText(this, R.string.err_location_service_unavailable, Toast.LENGTH_LONG)
                         .show();
                 finish();
             }
