@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,14 +49,14 @@ public class CreateRideFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        Retrofit retrofit =
+        Retrofit retrofitConf =
                 new Retrofit.Builder()
                         .baseUrl(WEBSERVER_BASE_URL)
                         .addConverterFactory(GsonConverterFactory.create())
                         .build();
 
-        WebServerInterface si =
-                retrofit.create(WebServerInterface.class);
+        WebServerInterface clientNetworkRequest =
+                retrofitConf.create(WebServerInterface.class);
 
         Button createRideButton = getActivity().findViewById(R.id.btn_create_ride);
         EditText driverUsername = getActivity().findViewById(R.id.edit_text_username);
@@ -65,18 +66,18 @@ public class CreateRideFragment extends Fragment {
             public void onClick(View v) {
 
 
-//                si.newRide(driverUsername.getText().toString()).enqueue(new retrofit2.Callback<Ride>() {
-//                    @Override
-//                    public void onResponse(retrofit2.Call<Ride> call, retrofit2.Response<Ride> response) {
-//                        Log.e(TAG, "Connection Succeed");
+                clientNetworkRequest.createRide(driverUsername.getText().toString(), "22").enqueue(new retrofit2.Callback<Ride>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<Ride> call, retrofit2.Response<Ride> response) {
+                        Log.e(TAG, "Connection Succeed");
 //                        shareRideToWhatsapp(WEBSERVER_BASE_URL + response.body().getUid());
-//                    }
-//
-//                    @Override
-//                    public void onFailure(retrofit2.Call<Ride> call, Throwable t) {
-//                        Log.e(TAG, "Connection Failed", t);
-//                    }
-//                });
+                    }
+
+                    @Override
+                    public void onFailure(retrofit2.Call<Ride> call, Throwable t) {
+                        Log.e(TAG, "Connection Failed", t);
+                    }
+                });
 
 
             }

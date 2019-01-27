@@ -25,17 +25,18 @@ public class MainActivity extends AbstractLocationPermissionActivity {
     private static final String TAG = "MainActivity";
 
     private static final int REQUEST_REQUIRED_SETTINGS_FROM_USER = 61124;
-    private static final String STATE_IN_RESOLUTION="inResolution";
     private static final String[] REQUIRED_PERMISSIONS=
             {Manifest.permission.ACCESS_FINE_LOCATION};
-    private boolean isSystemSettingsChangeDialogInForeground =false;
+
+    private static final String SYSTEM_SETTINGS_DIALOG_KEY ="SYSTEM_SETTINGS_DIALOG_KEY";
+    private boolean systemSettingsDialogInForeground = false;
     private CreateRideFragment generateRideFragment;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putBoolean(STATE_IN_RESOLUTION, isSystemSettingsChangeDialogInForeground);
+        outState.putBoolean(SYSTEM_SETTINGS_DIALOG_KEY, systemSettingsDialogInForeground);
     }
 
 
@@ -46,45 +47,24 @@ public class MainActivity extends AbstractLocationPermissionActivity {
         logDeviceHighEndYear();
     }
 
-    /*
-
-    By extending AbstractLocationPermissionActivity we need to implement:
-    getRequiredUserPermissions()
-    onReady()
-    onUserDeniedRequiredPermissions()
-
-     */
-
     @Override
     protected String[] getRequiredUserPermissions() {
         return(REQUIRED_PERMISSIONS);
     }
 
-    //  onReady(), called by AbstractPermissionActivity once we get all of the requested permissions
     @Override
-    protected void onReady(Bundle state) {
-        if (state!=null) {
-            isSystemSettingsChangeDialogInForeground =state.getBoolean(STATE_IN_RESOLUTION, false);
+    protected void onRequiredPermissionsGranted(Bundle mainActivityState) {
+
+        if (mainActivityState != null) {
+            systemSettingsDialogInForeground = mainActivityState.getBoolean(SYSTEM_SETTINGS_DIALOG_KEY);
         }
 
-        generateRideFragment =
-                (CreateRideFragment) getSupportFragmentManager().findFragmentById(android.R.id.content);
 
-        // TODO: YOU SHOULD NOT USE commitAllowingStateLoss in production.
-        // This is just a temporary fix. please see medium article:
-        // https://medium.com/@elye.project/handling-illegalstateexception-can-not-perform-this-action-after-onsaveinstancestate-d4ee8b630066
-
-        if (generateRideFragment == null) {
-            generateRideFragment = new CreateRideFragment();
-            getSupportFragmentManager().beginTransaction()
-                    .add(android.R.id.content, generateRideFragment).commitAllowingStateLoss();
-        }
-
-        if (!isSystemSettingsChangeDialogInForeground) {
-            isSystemSettingsChangeDialogInForeground =true;
+        if (!systemSettingsDialogInForeground) {
+            systemSettingsDialogInForeground = true;
             Toast.makeText(this, R.string.test_required_settings_turned_on, Toast.LENGTH_LONG).show();
 
-            // A LocationSettingsRequest makes a request to Play Services API to find out if the location settings on
+            // A LocationSettingsRequest makes a request to Play Services API to find out if the location settings is on
             LocationSettingsRequest getUserLocation=new LocationSettingsRequest.Builder()
                     .addLocationRequest(LocationRequest.create())
                     .build();
@@ -97,6 +77,18 @@ public class MainActivity extends AbstractLocationPermissionActivity {
                     Page 4846 for explanation
                      */
         }
+
+
+        generateRideFragment =
+                (CreateRideFragment) getSupportFragmentManager().findFragmentById(android.R.id.content);
+
+        if (generateRideFragment == null) {
+            generateRideFragment = new CreateRideFragment();
+            getSupportFragmentManager().beginTransaction()
+                    .add(android.R.id.content, generateRideFragment).commitAllowingStateLoss(); // TODO: YOU SHOULD NOT USE commitAllowingStateLoss in production.
+
+        }
+
     }
 
     // get the user location or prompt him to enable location on his device settings
@@ -184,7 +176,7 @@ public class MainActivity extends AbstractLocationPermissionActivity {
 
         // Request to get the user location via Google Play API
         if (requestCode == REQUEST_REQUIRED_SETTINGS_FROM_USER) {
-            isSystemSettingsChangeDialogInForeground =false;
+            systemSettingsDialogInForeground =false;
 
             if (resultCode==RESULT_OK) {
                 findLocation();

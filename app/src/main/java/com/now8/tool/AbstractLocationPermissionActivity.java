@@ -16,7 +16,7 @@ abstract public class AbstractLocationPermissionActivity
 
     abstract protected String[] getRequiredUserPermissions();
     abstract protected void onUserDeniedRequiredPermissions();
-    abstract protected void onReady(Bundle state);
+    abstract protected void onRequiredPermissionsGranted(Bundle state);
 
     private static final int REQUEST_REQUIRED_PERMISSIONS_FROM_USER = 61125;
 
@@ -36,7 +36,7 @@ abstract public class AbstractLocationPermissionActivity
         }
 
         if (hasAllRequiredPermissions(getRequiredUserPermissions())) {
-            onReady(createRideFragmentState);
+            onRequiredPermissionsGranted(createRideFragmentState);
         }
 
         else if (!isRequestPermissionDialogInForeground) {
@@ -61,7 +61,7 @@ abstract public class AbstractLocationPermissionActivity
         if (requestCode== REQUEST_REQUIRED_PERMISSIONS_FROM_USER) {
 
             if (hasAllRequiredPermissions(getRequiredUserPermissions())) {
-                onReady(createRideFragmentState);
+                onRequiredPermissionsGranted(createRideFragmentState);
             }
             else {
                 onUserDeniedRequiredPermissions();
