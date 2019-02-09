@@ -13,13 +13,9 @@
     <!-- Errors -->
     <string name="err_no_perm">Now8 must have permission in order to work</string>
     <string name="err_no_location">Sorry, but we don\'t have a location</string>
-    <string name="err_location_service_unavailable">Please turn on location in your device settings</string>
+    <string name="err_system_location_service_disabled">Please turn on location in your device settings</string>
     <string name="err_prompt_settings_change">An unexpected error occurred during the request to turn on your location on settings. Error: </string>
     <string name="err_share_ride_fail">Please turn on location in your device settings</string>
-
-    <!-- Testings -->
-    <string name="test_required_settings_turned_on">Testing if user required settings turned on..</string>
-
 
     <!-- Information -->
     <string name="info_share_ride_success">Ride Link Shared Successfully</string>

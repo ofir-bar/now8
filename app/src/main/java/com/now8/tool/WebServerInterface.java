@@ -13,4 +13,5 @@ public interface WebServerInterface {
 
     @POST("/join_ride/{username}/{location}/{uid}")
     Call<Ride> joinRide(@Path("username") String username, @Path("location")Location location, @Path("uid") String uid);
+
 }

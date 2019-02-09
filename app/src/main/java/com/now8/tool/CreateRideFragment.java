@@ -13,41 +13,43 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
-
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
 
-
-
-
 public class CreateRideFragment extends Fragment {
+
     private static final String TAG = "CreateRideFragment";
-    private static final String WHATSAPP_PACKAGE = "com.whatsapp";
+
     private static final String WEBSERVER_BASE_URL = "http://10.0.0.45:8000/";
     private static final String GOOGLE_MAPS_API_KEY = "AIzaSyCZi1vM-znzbHeys2suFJPeBJP5giqyS2U";
     private static final String GOOGLE_MAPS_DISTANCE_MATRIX_BASE_URL = "https://maps.googleapis.com/maps/api/distancematrix/" + "json?";
 
+    private static final String WHATSAPP_PACKAGE = "com.whatsapp";
     private static final int WHATSAPP_REQUEST_CODE = 1;
+
+    Button createRideButton;
+    EditText driverUsername;
+    Location userInitialLocation;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG,"onCreate");
     }
-
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d(TAG,"onCreateView");
         return inflater.inflate(R.layout.fragment_create_ride, container, false);
     }
-
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Log.d(TAG,"onViewCreated");
 
         Retrofit retrofitConf =
                 new Retrofit.Builder()
@@ -58,54 +60,24 @@ public class CreateRideFragment extends Fragment {
         WebServerInterface clientNetworkRequest =
                 retrofitConf.create(WebServerInterface.class);
 
-        Button createRideButton = getActivity().findViewById(R.id.btn_create_ride);
-        EditText driverUsername = getActivity().findViewById(R.id.edit_text_username);
+        createRideButton = getActivity().findViewById(R.id.btn_create_ride);
+        driverUsername = getActivity().findViewById(R.id.edit_text_username);
 
         createRideButton.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-
-
-                clientNetworkRequest.createRide(driverUsername.getText().toString(), "22").enqueue(new retrofit2.Callback<Ride>() {
-                    @Override
-                    public void onResponse(retrofit2.Call<Ride> call, retrofit2.Response<Ride> response) {
-                        Log.e(TAG, "Connection Succeed");
-//                        shareRideToWhatsapp(WEBSERVER_BASE_URL + response.body().getUid());
-                    }
-
-                    @Override
-                    public void onFailure(retrofit2.Call<Ride> call, Throwable t) {
-                        Log.e(TAG, "Connection Failed", t);
-                    }
-                });
-
-
+                retrofitNetworkRequest(clientNetworkRequest);
             }
         });
 
 
     }
 
-    public void shareRideToWhatsapp(String rideUID) {
-
-        Intent shareToWhatsapp = new Intent(Intent.ACTION_SEND);
-        shareToWhatsapp.putExtra(Intent.EXTRA_TEXT, rideUID);
-        shareToWhatsapp.setPackage(WHATSAPP_PACKAGE);
-        shareToWhatsapp.setType("text/plain");
-        startActivityForResult(shareToWhatsapp, WHATSAPP_REQUEST_CODE);
-    }
-
-    void printUserLocation(Location location) {
-        double roundedLat=(double)Math.round(location.getLatitude()*10000d)/10000d;
-        double roundedLon=(double)Math.round(location.getLongitude()*10000d)/10000d;
-
-        Toast.makeText(this.getContext(), "Lat: "+ Double.toString(roundedLat) + "\n Lon: "+ Double.toString(roundedLon), Toast.LENGTH_SHORT).show();
-    }
-
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        Log.d(TAG,"onActivityResult");
 
         if (requestCode == WHATSAPP_REQUEST_CODE){
 
@@ -120,6 +92,36 @@ public class CreateRideFragment extends Fragment {
     }
 
 
+    private void retrofitNetworkRequest(WebServerInterface clientNetworkRequest){
+        Log.d(TAG,"retrofitNetworkRequest");
 
+        clientNetworkRequest.createRide(driverUsername.getText().toString(), userInitialLocation).enqueue(new retrofit2.Callback<Ride>() {
+            @Override
+            public void onResponse(retrofit2.Call<Ride> call, retrofit2.Response<Ride> responseRide) {
+                Log.e(TAG, "Connection succeed");
+//                        shareRideToWhatsapp(WEBSERVER_BASE_URL + responseRide.body().getUid());
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<Ride> call, Throwable t) {
+                Log.e(TAG, "Connection Failed", t);
+            }
+        });
+
+    }
+
+    private void shareRideToWhatsapp(String rideUID) {
+
+        Intent shareToWhatsapp = new Intent(Intent.ACTION_SEND);
+        shareToWhatsapp.putExtra(Intent.EXTRA_TEXT, rideUID);
+        shareToWhatsapp.setPackage(WHATSAPP_PACKAGE);
+        shareToWhatsapp.setType("text/plain");
+        startActivityForResult(shareToWhatsapp, WHATSAPP_REQUEST_CODE);
+    }
+
+    private void printUserLocation(Location location) {
+        double roundedLat=(double)Math.round(location.getLatitude()*10000d)/10000d;
+        double roundedLon=(double)Math.round(location.getLongitude()*10000d)/10000d;
+    }
 
 }
