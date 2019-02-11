@@ -31,7 +31,7 @@ public class CreateRideFragment extends Fragment {
 
     Button createRideButton;
     EditText driverUsername;
-    Location userInitialLocation;
+    private Location deviceInitialLocation;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,7 +67,10 @@ public class CreateRideFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
-                retrofitNetworkRequest(clientNetworkRequest);
+                String latitude = Double.toString(deviceInitialLocation.getLatitude());
+                String longitude = Double.toString(deviceInitialLocation.getLongitude());
+                Toast.makeText(v.getContext(), "Latitude: " + latitude + ", Longitude: " + longitude, Toast.LENGTH_LONG).show();
+                //retrofitNetworkRequest(clientNetworkRequest);
             }
         });
 
@@ -95,7 +98,7 @@ public class CreateRideFragment extends Fragment {
     private void retrofitNetworkRequest(WebServerInterface clientNetworkRequest){
         Log.d(TAG,"retrofitNetworkRequest");
 
-        clientNetworkRequest.createRide(driverUsername.getText().toString(), userInitialLocation).enqueue(new retrofit2.Callback<Ride>() {
+        clientNetworkRequest.createRide(driverUsername.getText().toString(), getDeviceInitialLocation()).enqueue(new retrofit2.Callback<Ride>() {
             @Override
             public void onResponse(retrofit2.Call<Ride> call, retrofit2.Response<Ride> responseRide) {
                 Log.e(TAG, "Connection succeed");
@@ -124,4 +127,11 @@ public class CreateRideFragment extends Fragment {
         double roundedLon=(double)Math.round(location.getLongitude()*10000d)/10000d;
     }
 
+    public Location getDeviceInitialLocation() {
+        return deviceInitialLocation;
+    }
+
+    public void setDeviceInitialLocation(Location deviceInitialLocation) {
+        this.deviceInitialLocation = deviceInitialLocation;
+    }
 }

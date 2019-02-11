@@ -2,6 +2,7 @@ package com.now8.tool;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.location.Location;
@@ -25,10 +26,10 @@ public class MainActivityUser extends AbstractUserLocationPermissions {
 
     private CreateRideFragment generateRideFragment;
 
-    private static final String SYSTEM_SETTINGS_DIALOG_KEY ="SYSTEM_SETTINGS_DIALOG_KEY";
-    private boolean systemSettingsDialogInForeground = false;
+    private static final String STATE_OF_SYSTEM_SETTINGS_DIALOG_KEY ="STATE_OF_SYSTEM_SETTINGS_DIALOG_KEY";
+    private boolean turnOnLocationInSettingsDialogInForeground = false;
 
-    private static final int REQUEST_REQUIRED_SETTINGS_FROM_USER = 61124;
+    private static final int REQUEST_TO_TURN_ON_LOCATION_IN_SETTINGS_DIALOG = 61124;
     private static final String[] REQUIRED_PERMISSIONS=
             {Manifest.permission.ACCESS_FINE_LOCATION};
 
@@ -37,7 +38,7 @@ public class MainActivityUser extends AbstractUserLocationPermissions {
         super.onSaveInstanceState(outState);
         Log.d(TAG,"onSaveInstanceState");
 
-        outState.putBoolean(SYSTEM_SETTINGS_DIALOG_KEY, systemSettingsDialogInForeground);
+        outState.putBoolean(STATE_OF_SYSTEM_SETTINGS_DIALOG_KEY, turnOnLocationInSettingsDialogInForeground);
     }
 
     @Override
@@ -65,12 +66,12 @@ public class MainActivityUser extends AbstractUserLocationPermissions {
         Log.d(TAG,"onRequiredPermissionsGranted");
 
         if (mainActivityState != null) {
-            systemSettingsDialogInForeground = mainActivityState.getBoolean(SYSTEM_SETTINGS_DIALOG_KEY);
+            turnOnLocationInSettingsDialogInForeground = mainActivityState.getBoolean(STATE_OF_SYSTEM_SETTINGS_DIALOG_KEY);
         }
 
 
-        if (!systemSettingsDialogInForeground) {
-            systemSettingsDialogInForeground = true;
+        if (!turnOnLocationInSettingsDialogInForeground) {
+            turnOnLocationInSettingsDialogInForeground = true;
 
             LocationSettingsRequest requiredDeviceSettingsForLocationRequests = new LocationSettingsRequest.Builder()
                     .addLocationRequest(LocationRequest.create())
@@ -112,64 +113,77 @@ public class MainActivityUser extends AbstractUserLocationPermissions {
         Log.d(TAG,"requestLocationViaFusedApi");
 
         try {
-            isFusedApiLocationSettingsAvailable(task);
+            if(isLocationAvailable(task)){
+                getDeviceLocation();
+            }
         }
         catch (ApiException fusedApiException) {
-            requestLocationSystemDialogOrToastLocationUnavailable(fusedApiException);
+            turnOnLocationInSettingsDialogOrToastLocationIsNotUsable(fusedApiException);
             return false;
         }
         return false;
     }
-    private boolean isFusedApiLocationSettingsAvailable(Task<LocationSettingsResponse> task) throws ApiException{
-        Log.d(TAG,"isFusedApiLocationSettingsAvailable");
 
-        LocationSettingsResponse locationSettingsResponseTaskFromGoogleAPI=task.getResult(ApiException.class);
-        LocationSettingsStates userSettingsLocationState=locationSettingsResponseTaskFromGoogleAPI.getLocationSettingsStates();
+    // checks that GPS or network location provider is usable and present
+    private boolean isLocationAvailable(Task<LocationSettingsResponse> task) throws ApiException{
+        Log.d(TAG,"isLocationAvailable");
 
-        return (userSettingsLocationState.isLocationPresent() && userSettingsLocationState.isLocationUsable());
+        LocationSettingsResponse locationSettingsResponseTaskFromGoogleAPI = task.getResult(ApiException.class);
+        LocationSettingsStates userSettingsLocationState = locationSettingsResponseTaskFromGoogleAPI.getLocationSettingsStates();
+
+        return ( userSettingsLocationState.isLocationPresent() && userSettingsLocationState.isLocationUsable() );
 
     }
-    private void requestLocationSystemDialogOrToastLocationUnavailable(Exception e) {
-        Log.d(TAG,"requestLocationSystemDialogOrToastLocationUnavailable");
+    private void turnOnLocationInSettingsDialogOrToastLocationIsNotUsable(Exception e) {
+        Log.d(TAG,"turnOnLocationInSettingsDialogOrToastLocationIsNotUsable");
+
 
         if (e instanceof ResolvableApiException) {
             try {
-                //Note: startResolutionForResult calls startActivityForResult under the hood
-                ((ResolvableApiException)e).startResolutionForResult(this, REQUEST_REQUIRED_SETTINGS_FROM_USER);
-                return;
+                //Note: startResolutionForResult calls startActivityForResult, and that opens a turnOnLocationInSettingsDialog Activity
+                ((ResolvableApiException)e).startResolutionForResult(this, REQUEST_TO_TURN_ON_LOCATION_IN_SETTINGS_DIALOG);
             }
+            // Couldn't pop a turnOnLocationInSettingsDialog
             catch (IntentSender.SendIntentException intentSenderException) {
-                e=intentSenderException;
+                locationUnavailable(this, intentSenderException);
             }
         }
 
-        Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-        Log.e(getClass().getSimpleName(), Integer.toString(R.string.err_prompt_settings_change), e);
+    }
+
+    private void locationUnavailable(Context context, Exception e){
+
+        Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+        Log.e(getClass().getSimpleName(), Integer.toString(R.string.err_failed_to_request_settings_change_dialog), e);
         finish();
     }
 
     @SuppressLint("MissingPermission")
-    private void getUserLocation() {
-        Log.d(TAG,"getUserLocation");
+    private void getDeviceLocation() {
+        Log.d(TAG,"getDeviceLocation");
 
-        FusedLocationProviderClient googleFusedLocationProviderClient=
+        FusedLocationProviderClient client=
                 LocationServices.getFusedLocationProviderClient(this);
 
-        googleFusedLocationProviderClient.getLastLocation()
-                .addOnCompleteListener(this, this::fusedApiReturnedLocation)
-                .addOnFailureListener(this, this::requestLocationSystemDialogOrToastLocationUnavailable);
-    }
-    private void fusedApiReturnedLocation(Task<Location> getUserLocationTask) {
-        Log.d(TAG,"fusedApiReturnedLocation");
+        // Note: getLastLocation() does no give a Location object, It returns a Task.
+        // The Play Services SDK talks to a separate Play Services Framework app, which in turn handles all of the Play Services work
+        // Using the response from that Play Service we can either get location or fail to.
 
-        if (getUserLocationTask.getResult()==null) {
+        client.getLastLocation()
+        .addOnCompleteListener(this, this::locationRequestSuccess);
+                // TODO: add a failure scenario
+    }
+    private void locationRequestSuccess(Task<Location> getUserLocationTask) {
+        Log.d(TAG,"locationRequestSuccess");
+
+        if (getUserLocationTask.getResult() == null) {
             Toast
-                    .makeText(this, R.string.err_no_location, Toast.LENGTH_LONG)
+                    .makeText(this, R.string.err_location_null, Toast.LENGTH_LONG)
                     .show();
             finish();
         }
         else {
-            generateRideFragment.userInitialLocation = getUserLocationTask.getResult();
+            generateRideFragment.setDeviceInitialLocation(getUserLocationTask.getResult());
         }
     }
 
@@ -178,15 +192,14 @@ public class MainActivityUser extends AbstractUserLocationPermissions {
                                     Intent data) {
         Log.d(TAG,"onActivityResult");
 
-        if (requestCode == REQUEST_REQUIRED_SETTINGS_FROM_USER) {
-            systemSettingsDialogInForeground =false;
+        if (requestCode == REQUEST_TO_TURN_ON_LOCATION_IN_SETTINGS_DIALOG) {
+            turnOnLocationInSettingsDialogInForeground = false; // Avoid showing multiply dialogs. (e.g. due to configuration change - screen rotate)
 
             if (resultCode==RESULT_OK) {
-                getUserLocation();
+                getDeviceLocation();
             }
             else {
-                Toast.makeText(this, R.string.err_system_location_service_disabled, Toast.LENGTH_LONG)
-                        .show();
+                Toast.makeText(this, R.string.err_user_denied_system_location_turn_on, Toast.LENGTH_LONG).show();
                 finish();
             }
         }
