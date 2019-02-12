@@ -10,9 +10,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.facebook.device.yearclass.YearClass;
+
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -23,24 +25,29 @@ import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.tasks.Task;
 
+import retrofit2.Callback;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivityUser extends AbstractUserPermissions {
+public class MainActivity extends AbstractUserPermissions {
+    private static final String TAG = "MainActivity";
 
-    private static final String TAG = "MainActivityUser";
-
-    private CreateRideFragment generateRideFragment;
 
     private static final String STATE_OF_SYSTEM_SETTINGS_DIALOG_KEY ="STATE_OF_SYSTEM_SETTINGS_DIALOG_KEY";
     private boolean turnOnLocationInSettingsDialogInForeground = false;
 
     private static final int REQUEST_TO_TURN_ON_LOCATION_IN_SETTINGS_DIALOG = 61124;
 
+    private static final String SLACK_PACKAGE = "com.Slack";
+    private static final int SHARED_IN_SLACK_REQUEST_CODE = 1;
 
     private static final String WEBSERVER_BASE_URL = "http://10.0.0.45:8000/";
-    private String joinRideLink;
-    WebServerInterface clientNetworkRequest;
+    private static final String GOOGLE_MAPS_API_KEY = "AIzaSyCZi1vM-znzbHeys2suFJPeBJP5giqyS2U";
+    private static final String GOOGLE_MAPS_DISTANCE_MATRIX_BASE_URL = "https://maps.googleapis.com/maps/api/distancematrix/" + "json?";
+
+    private Location initialLocation;
+    private Button createRide;
+    private WebServerInterface retrofitNetworkRequest;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -52,8 +59,10 @@ public class MainActivityUser extends AbstractUserPermissions {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
+
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
         Retrofit retrofitConf =
                 new Retrofit.Builder()
@@ -61,28 +70,27 @@ public class MainActivityUser extends AbstractUserPermissions {
                         .addConverterFactory(GsonConverterFactory.create())
                         .build();
 
-        clientNetworkRequest =
-                retrofitConf.create(WebServerInterface.class);
+        retrofitNetworkRequest = retrofitConf.create(WebServerInterface.class);
 
-        setContentView(R.layout.activity_main);
-        logDeviceHighEndYear();
+        createRide = findViewById(R.id.btn_create_ride);
+        createRide.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                retrofitNetworkRequest.createRide("username", "some location").enqueue(new retrofit2.Callback<Ride>(){
+                    @Override
+                    public void onResponse(retrofit2.Call<Ride> call, retrofit2.Response<Ride> responseRide) {
+                        Log.e(TAG, "Connection succeed");
+                        shareRideToSlack(WEBSERVER_BASE_URL + responseRide.body().getUid());
+                    }
 
-        // ATTENTION: This was auto-generated to handle app links.
-        Intent appLinkIntent = getIntent();
-        String appLinkAction = appLinkIntent.getAction();
-        Uri appLinkData = appLinkIntent.getData();
+                    @Override
+                    public void onFailure(retrofit2.Call<Ride> call, Throwable t) {
+                        Log.e(TAG, "Connection Failed", t);
+                    }
+                });
+            }
+        });
 
-        joinRideLink = appLinkIntent.getDataString();
-        if(joinRideLink != null){
-            joinRideAlertDialog(this, joinRideLink);
-        }
-
-
-    }
-    private void logDeviceHighEndYear(){
-
-        int deviceYearClass = YearClass.get(getApplicationContext());
-        Log.d(TAG,"Device high-end year: " + String.valueOf(deviceYearClass) );
     }
 
     @Override
@@ -106,23 +114,8 @@ public class MainActivityUser extends AbstractUserPermissions {
                     .addOnCompleteListener(this::requestLocationViaFusedApi);
         }
 
-        initializeCreateRideFragment();
-
     }
-    private void initializeCreateRideFragment(){
-        Log.d(TAG,"initializeCreateRideFragment");
 
-        generateRideFragment =
-                (CreateRideFragment) getSupportFragmentManager().findFragmentById(android.R.id.content);
-
-        if (generateRideFragment == null) {
-            generateRideFragment = new CreateRideFragment();
-            getSupportFragmentManager().beginTransaction()
-                    .add(android.R.id.content, generateRideFragment).commitAllowingStateLoss(); //TODO: you should not use commitAllowingStateLoss() in production
-
-        }
-
-    }
     @Override
     protected void onUserDeniedRequiredPermissions() {
         Log.d(TAG,"onUserDeniedRequiredPermissions");
@@ -207,7 +200,7 @@ public class MainActivityUser extends AbstractUserPermissions {
             finish();
         }
         else {
-            generateRideFragment.setDeviceInitialLocation(getUserLocationTask.getResult());
+            initialLocation = getUserLocationTask.getResult();
         }
     }
 
@@ -227,21 +220,42 @@ public class MainActivityUser extends AbstractUserPermissions {
                 finish();
             }
         }
+
+        else if (requestCode == SHARED_IN_SLACK_REQUEST_CODE){
+
+            if (resultCode == RESULT_OK){
+                Toast.makeText(this, R.string.info_share_ride_success, Toast.LENGTH_LONG).show();
+            }
+            else if (resultCode == RESULT_CANCELED){
+                Toast.makeText(this, R.string.err_share_ride_fail, Toast.LENGTH_LONG).show();
+            }
+        }
+
         else {
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
-    private void joinRideAlertDialog(Context context, String joinRideLink){
-        final TextView joinRide = new TextView(context);
-        joinRide.setText(joinRideLink);
+    private void shareRideToSlack(String rideUID) {
 
-        new AlertDialog.Builder(context)
+        Intent shareToSlack = new Intent(Intent.ACTION_SEND);
+        shareToSlack.putExtra(Intent.EXTRA_TEXT, rideUID);
+        shareToSlack.setPackage(SLACK_PACKAGE);
+        shareToSlack.setType("text/plain");
+        startActivityForResult(shareToSlack, SHARED_IN_SLACK_REQUEST_CODE);
+    }
+
+    private void joinRideDialog(String rideInviteLink){
+
+        final TextView joinRide = new TextView(this);
+        joinRide.setText(rideInviteLink);
+
+        new AlertDialog.Builder(this)
                 .setTitle("Join a ride")
                 .setView(joinRide)
                 .setPositiveButton("Submit", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        retrofitNetworkRequestJoinRide(context,clientNetworkRequest);
+                        // retrofitNetworkRequestJoinRide(context,clientNetworkRequest);
                         dialog.dismiss();
                     }
                 })
@@ -252,23 +266,4 @@ public class MainActivityUser extends AbstractUserPermissions {
                 })
                 .show();
     }
-
-
-    private void retrofitNetworkRequestJoinRide(Context context, WebServerInterface clientNetworkRequest){
-        Log.d(TAG,"retrofitNetworkRequest");
-        clientNetworkRequest.joinRide("some user", "some fake location", joinRideLink).enqueue(new retrofit2.Callback<Ride>() {
-            @Override
-            public void onResponse(retrofit2.Call<Ride> call, retrofit2.Response<Ride> responseRide) {
-                Log.e(TAG, "Connection succeed");
-                Toast.makeText(context, "Requested to join ride", Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onFailure(retrofit2.Call<Ride> call, Throwable t) {
-                Log.e(TAG, "Connection Failed", t);
-            }
-        });
-
-    }
-
 }
