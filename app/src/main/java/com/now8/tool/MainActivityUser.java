@@ -1,13 +1,16 @@
 package com.now8.tool;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.facebook.device.yearclass.YearClass;
 import com.google.android.gms.common.api.ApiException;
@@ -20,7 +23,10 @@ import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.tasks.Task;
 
-public class MainActivityUser extends AbstractUserLocationPermissions {
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
+public class MainActivityUser extends AbstractUserPermissions {
 
     private static final String TAG = "MainActivityUser";
 
@@ -30,8 +36,11 @@ public class MainActivityUser extends AbstractUserLocationPermissions {
     private boolean turnOnLocationInSettingsDialogInForeground = false;
 
     private static final int REQUEST_TO_TURN_ON_LOCATION_IN_SETTINGS_DIALOG = 61124;
-    private static final String[] REQUIRED_PERMISSIONS=
-            {Manifest.permission.ACCESS_FINE_LOCATION};
+
+
+    private static final String WEBSERVER_BASE_URL = "http://10.0.0.45:8000/";
+    private String joinRideLink;
+    WebServerInterface clientNetworkRequest;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -44,10 +53,31 @@ public class MainActivityUser extends AbstractUserLocationPermissions {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG,"onCreate");
+        Log.d(TAG, "onCreate");
+
+        Retrofit retrofitConf =
+                new Retrofit.Builder()
+                        .baseUrl(WEBSERVER_BASE_URL)
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
+
+        clientNetworkRequest =
+                retrofitConf.create(WebServerInterface.class);
 
         setContentView(R.layout.activity_main);
         logDeviceHighEndYear();
+
+        // ATTENTION: This was auto-generated to handle app links.
+        Intent appLinkIntent = getIntent();
+        String appLinkAction = appLinkIntent.getAction();
+        Uri appLinkData = appLinkIntent.getData();
+
+        joinRideLink = appLinkIntent.getDataString();
+        if(joinRideLink != null){
+            joinRideAlertDialog(this, joinRideLink);
+        }
+
+
     }
     private void logDeviceHighEndYear(){
 
@@ -55,12 +85,6 @@ public class MainActivityUser extends AbstractUserLocationPermissions {
         Log.d(TAG,"Device high-end year: " + String.valueOf(deviceYearClass) );
     }
 
-    @Override
-    protected String[] getRequiredUserPermissions() {
-        Log.d(TAG,"getRequiredUserPermissions");
-
-        return(REQUIRED_PERMISSIONS);
-    }
     @Override
     protected void onRequiredPermissionsGranted(Bundle mainActivityState) {
         Log.d(TAG,"onRequiredPermissionsGranted");
@@ -206,6 +230,45 @@ public class MainActivityUser extends AbstractUserLocationPermissions {
         else {
             super.onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+    private void joinRideAlertDialog(Context context, String joinRideLink){
+        final TextView joinRide = new TextView(context);
+        joinRide.setText(joinRideLink);
+
+        new AlertDialog.Builder(context)
+                .setTitle("Join a ride")
+                .setView(joinRide)
+                .setPositiveButton("Submit", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        retrofitNetworkRequestJoinRide(context,clientNetworkRequest);
+                        dialog.dismiss();
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        dialog.cancel();
+                    }
+                })
+                .show();
+    }
+
+
+    private void retrofitNetworkRequestJoinRide(Context context, WebServerInterface clientNetworkRequest){
+        Log.d(TAG,"retrofitNetworkRequest");
+        clientNetworkRequest.joinRide("some user", "some fake location", joinRideLink).enqueue(new retrofit2.Callback<Ride>() {
+            @Override
+            public void onResponse(retrofit2.Call<Ride> call, retrofit2.Response<Ride> responseRide) {
+                Log.e(TAG, "Connection succeed");
+                Toast.makeText(context, "Requested to join ride", Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<Ride> call, Throwable t) {
+                Log.e(TAG, "Connection Failed", t);
+            }
+        });
+
     }
 
 }

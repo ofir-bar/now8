@@ -8,7 +8,9 @@
     <string name="btn_create_ride">CREATE A NEW RIDE</string>
 
     <!-- Edit Text -->
-    <string name="edit_text_username">Username</string>
+
+    <!-- Text View -->
+    <string name="text_view_username">default_username</string>
 
     <!-- Errors -->
     <string name="err_no_perm">Now8 must have permission in order to work</string>

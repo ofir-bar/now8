@@ -3,11 +3,13 @@
     package="com.now8.tool">
     <!-- PERMISSIONS -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <!-- Features -->
-    <uses-feature android:name="android.hardware.location" android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.location"
+        android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -21,6 +23,17 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="http"
+                    android:host="10.0.0.45"
+                    android:port="8000" />
             </intent-filter>
         </activity>
     </application>

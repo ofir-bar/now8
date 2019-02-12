@@ -1,5 +1,6 @@
 package com.now8.tool;
 
+import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -11,18 +12,19 @@ import android.util.Log;
 import java.util.ArrayList;
 
 // This abstract class deals with required user permissions, which are requested on runtime for Android 6.0 or API > 23
-abstract public class AbstractUserLocationPermissions
+abstract public class AbstractUserPermissions
         extends FragmentActivity {
 
-    private static final String TAG = "AbstractUserLocationPermissions";
+    private static final String TAG = "AbstractUserPermissions";
 
-    abstract protected String[] getRequiredUserPermissions();
     abstract protected void onUserDeniedRequiredPermissions();
     abstract protected void onRequiredPermissionsGranted(Bundle state);
 
     private static final int REQUEST_REQUIRED_PERMISSIONS_FROM_USER = 61125;
     private static final String REQUEST_PERMISSIONS_DIALOG_KEY = null;
     private boolean isRequestPermissionDialogInForeground = false;
+    private static final String[] REQUIRED_PERMISSIONS=
+            {Manifest.permission.ACCESS_FINE_LOCATION};
 
     private Bundle createRideFragmentState;
     @Override
@@ -44,7 +46,7 @@ abstract public class AbstractUserLocationPermissions
             isRequestPermissionDialogInForeground = createRideFragmentState.getBoolean(REQUEST_PERMISSIONS_DIALOG_KEY);
         }
 
-        if (hasAllRequiredPermissions(getRequiredUserPermissions())) {
+        if (hasAllRequiredPermissions(REQUIRED_PERMISSIONS)) {
             onRequiredPermissionsGranted(createRideFragmentState);
         }
 
@@ -54,7 +56,7 @@ abstract public class AbstractUserLocationPermissions
 
             ActivityCompat
                     .requestPermissions(this,
-                            getMissingRequiredPermissions(getRequiredUserPermissions()),
+                            getMissingRequiredPermissions(REQUIRED_PERMISSIONS),
                             REQUEST_REQUIRED_PERMISSIONS_FROM_USER);
         }
 
@@ -82,7 +84,7 @@ abstract public class AbstractUserLocationPermissions
 
         if (requestCode== REQUEST_REQUIRED_PERMISSIONS_FROM_USER) {
 
-            if (hasAllRequiredPermissions(getRequiredUserPermissions())) {
+            if (hasAllRequiredPermissions(REQUIRED_PERMISSIONS)) {
                 onRequiredPermissionsGranted(createRideFragmentState);
             }
             else {

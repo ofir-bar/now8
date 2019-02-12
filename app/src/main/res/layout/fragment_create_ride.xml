@@ -23,16 +23,26 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <EditText
-        android:id="@+id/edit_text_username"
+    <TextView
+        android:id="@+id/username"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:ems="10"
-        android:inputType="textPersonName"
-        android:hint="@string/edit_text_username"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="@string/text_view_username"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/btn_create_ride"
         app:layout_constraintStart_toStartOf="@+id/btn_create_ride"
         app:layout_constraintTop_toBottomOf="@+id/btn_create_ride" />
+
+    <ImageButton
+        android:id="@+id/change_username"
+        android:layout_width="45dp"
+        android:layout_height="35dp"
+        android:layout_marginStart="8dp"
+        android:src="@android:drawable/ic_menu_edit"
+        app:layout_constraintBottom_toBottomOf="@+id/username"
+        app:layout_constraintStart_toEndOf="@+id/username"
+        app:layout_constraintTop_toTopOf="@+id/username" />
 
 </android.support.constraint.ConstraintLayout>

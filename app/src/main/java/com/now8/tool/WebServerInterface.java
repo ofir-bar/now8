@@ -8,10 +8,10 @@ import retrofit2.http.Path;
 
 public interface WebServerInterface {
 
-    @POST("/new_ride/{username}/{location}")
-    Call<Ride> createRide(@Path("username") String username, @Path("location")Location location);
+    @POST("/new_ride/{usernameTextView}/{location}")
+    Call<Ride> createRide(@Path("usernameTextView") String username, @Path("location")String location);
 
-    @POST("/join_ride/{username}/{location}/{uid}")
-    Call<Ride> joinRide(@Path("username") String username, @Path("location")Location location, @Path("uid") String uid);
+    @POST("/join_ride/{usernameTextView}/{location}/{uid}")
+    Call<Ride> joinRide(@Path("usernameTextView") String username, @Path("location")String location, @Path("uid") String uid);
 
 }
