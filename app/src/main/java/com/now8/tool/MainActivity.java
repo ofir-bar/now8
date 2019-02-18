@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -25,7 +24,12 @@ import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.tasks.Task;
 
+import java.io.IOException;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -41,7 +45,7 @@ public class MainActivity extends AbstractUserPermissions {
     private static final String SLACK_PACKAGE = "com.Slack";
     private static final int SHARED_IN_SLACK_REQUEST_CODE = 1;
 
-    private static final String WEBSERVER_BASE_URL = "http://10.0.0.45:8000/";
+    private static final String AWS_BASE_URL = "https://i4lyu11ra8.execute-api.eu-west-1.amazonaws.com/development/";
     private static final String GOOGLE_MAPS_API_KEY = "AIzaSyCZi1vM-znzbHeys2suFJPeBJP5giqyS2U";
     private static final String GOOGLE_MAPS_DISTANCE_MATRIX_BASE_URL = "https://maps.googleapis.com/maps/api/distancematrix/" + "json?";
 
@@ -66,7 +70,7 @@ public class MainActivity extends AbstractUserPermissions {
 
         Retrofit retrofitConf =
                 new Retrofit.Builder()
-                        .baseUrl(WEBSERVER_BASE_URL)
+                        .baseUrl(AWS_BASE_URL)
                         .addConverterFactory(GsonConverterFactory.create())
                         .build();
 
@@ -76,16 +80,22 @@ public class MainActivity extends AbstractUserPermissions {
         createRide.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                retrofitNetworkRequest.createRide("username", "some location").enqueue(new retrofit2.Callback<Ride>(){
+
+                retrofitNetworkRequest.pingServer().enqueue(new Callback<ResponseBody>() {
                     @Override
-                    public void onResponse(retrofit2.Call<Ride> call, retrofit2.Response<Ride> responseRide) {
-                        Log.e(TAG, "Connection succeed");
-                        shareRideToSlack(WEBSERVER_BASE_URL + responseRide.body().getUid());
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        String s = "default";
+                        try{
+                            s = response.body().string();
+                        }catch (IOException e){
+
+                        }
+                        Toast.makeText(v.getContext(),s , Toast.LENGTH_LONG).show();
                     }
 
                     @Override
-                    public void onFailure(retrofit2.Call<Ride> call, Throwable t) {
-                        Log.e(TAG, "Connection Failed", t);
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+
                     }
                 });
             }
