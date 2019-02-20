@@ -14,6 +14,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amazonaws.mobile.client.AWSMobileClient;
+import com.amazonaws.mobile.client.UserStateDetails;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserPool;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -49,6 +52,12 @@ public class MainActivity extends AbstractUserPermissions {
     private static final String GOOGLE_MAPS_API_KEY = "AIzaSyCZi1vM-znzbHeys2suFJPeBJP5giqyS2U";
     private static final String GOOGLE_MAPS_DISTANCE_MATRIX_BASE_URL = "https://maps.googleapis.com/maps/api/distancematrix/" + "json?";
 
+
+    // AWS Cognito
+
+
+
+
     private Location initialLocation;
     private Button createRide;
     private WebServerInterface retrofitNetworkRequest;
@@ -67,6 +76,7 @@ public class MainActivity extends AbstractUserPermissions {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         Retrofit retrofitConf =
                 new Retrofit.Builder()

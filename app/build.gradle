@@ -5,7 +5,7 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.now8.tool"
-        minSdkVersion 17
+        minSdkVersion 23
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
@@ -35,13 +35,15 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
     implementation 'com.google.android.gms:play-services-location:16.0.0'
 
-    //Base SDK
-    implementation 'com.amazonaws:aws-android-sdk-core:2.12.+'
-    //AppSync SDK
-    implementation 'com.amazonaws:aws-android-sdk-appsync:2.7.+'
-    implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0'
-    implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
+    //AWS
+    implementation 'com.amazonaws:aws-android-sdk-core:2.12.0'
 
+    //For AWSMobileClient only:
+    implementation 'com.amazonaws:aws-android-sdk-mobile-client:2.12.0'
+
+    //For the drop-in UI also:
+    implementation 'com.amazonaws:aws-android-sdk-auth-userpools:2.12.0'
+    implementation 'com.amazonaws:aws-android-sdk-auth-ui:2.12.0'
 
 }
 
