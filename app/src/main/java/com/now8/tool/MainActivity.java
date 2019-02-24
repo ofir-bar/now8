@@ -2,12 +2,10 @@ package com.now8.tool;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -15,8 +13,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amazonaws.mobile.client.AWSMobileClient;
-import com.amazonaws.mobile.client.UserStateDetails;
-import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserPool;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -27,9 +23,6 @@ import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.tasks.Task;
 
-import java.io.IOException;
-
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -53,14 +46,13 @@ public class MainActivity extends AbstractUserPermissions {
     private static final String GOOGLE_MAPS_DISTANCE_MATRIX_BASE_URL = "https://maps.googleapis.com/maps/api/distancematrix/" + "json?";
 
 
-    // AWS Cognito
-
 
 
 
     private Location initialLocation;
     private Button createRide;
-    private WebServerInterface retrofitNetworkRequest;
+    final private String driverIdToken = INSERT TOKEN HERE;
+    private String driverUID;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -77,40 +69,24 @@ public class MainActivity extends AbstractUserPermissions {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        Retrofit retrofitConf =
-                new Retrofit.Builder()
-                        .baseUrl(AWS_BASE_URL)
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build();
-
-        retrofitNetworkRequest = retrofitConf.create(WebServerInterface.class);
-
         createRide = findViewById(R.id.btn_create_ride);
         createRide.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                retrofitNetworkRequest.pingServer().enqueue(new Callback<ResponseBody>() {
-                    @Override
-                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                        String s = "default";
-                        try{
-                            s = response.body().string();
-                        }catch (IOException e){
-
-                        }
-                        Toast.makeText(v.getContext(),s , Toast.LENGTH_LONG).show();
-                    }
-
-                    @Override
-                    public void onFailure(Call<ResponseBody> call, Throwable t) {
-
-                    }
-                });
+                    sendNetworkRequest(driverIdToken);
             }
         });
 
+        TextView logOut = findViewById(R.id.log_out);
+        logOut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            AWSMobileClient.getInstance().signOut();
+            finish();
+            Intent i = new Intent(MainActivity.this, AuthenticationActivity.class);
+            startActivity(i);
+            }
+        });
     }
 
     @Override
@@ -257,7 +233,6 @@ public class MainActivity extends AbstractUserPermissions {
     }
 
     private void shareRideToSlack(String rideUID) {
-
         Intent shareToSlack = new Intent(Intent.ACTION_SEND);
         shareToSlack.putExtra(Intent.EXTRA_TEXT, rideUID);
         shareToSlack.setPackage(SLACK_PACKAGE);
@@ -265,25 +240,43 @@ public class MainActivity extends AbstractUserPermissions {
         startActivityForResult(shareToSlack, SHARED_IN_SLACK_REQUEST_CODE);
     }
 
-    private void joinRideDialog(String rideInviteLink){
+    private void sendNetworkRequest(String driverIdToken){
+//        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+//        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+//
+//        OkHttpClient.Builder okHttpBuilder = new OkHttpClient.Builder();
+//        // avoid logging network data (may be sensitive info) in production
+//            if(BuildConfig.DEBUG){
+//                okHttpBuilder.addInterceptor(logging);
+//            }
 
-        final TextView joinRide = new TextView(this);
-        joinRide.setText(rideInviteLink);
+        Retrofit.Builder retrofitConf = new Retrofit.Builder()
+                        .baseUrl(AWS_BASE_URL)
+                        .addConverterFactory(GsonConverterFactory.create());
 
-        new AlertDialog.Builder(this)
-                .setTitle("Join a ride")
-                .setView(joinRide)
-                .setPositiveButton("Submit", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        // retrofitNetworkRequestJoinRide(context,clientNetworkRequest);
-                        dialog.dismiss();
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        dialog.cancel();
-                    }
-                })
-                .show();
+        Retrofit retrofit = retrofitConf.build();
+
+        FrontendClient retrofitNetworkRequest = retrofit.create(FrontendClient.class);
+        Call<ResponseBody> call = retrofitNetworkRequest.createRide(driverIdToken);
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                Log.e("onResponse", "onResponse Worked");
+
+                try{
+                    Log.e("onResponse", response.body().getRideUid());
+                }catch (NullPointerException e){
+                    Log.e("onResponse", e.getMessage());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e(TAG,"onFailure");
+                Log.e(TAG,t.getMessage());
+            }
+        });
     }
+
 }

@@ -46,7 +46,7 @@ public class AuthenticationActivity extends AppCompatActivity {
         });
     }
 
-    private void showSignIn() {
+    void showSignIn() {
         try {
             AWSMobileClient.getInstance().showSignIn(this,
                     SignInUIOptions.builder()
