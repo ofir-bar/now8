@@ -51,8 +51,6 @@ public class MainActivity extends AbstractUserPermissions {
 
     private Location initialLocation;
     private Button createRide;
-    final private String driverIdToken = INSERT TOKEN HERE;
-    private String driverUID;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -69,11 +67,25 @@ public class MainActivity extends AbstractUserPermissions {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (!AWSMobileClient.getInstance().isSignedIn()){
+            Log.e("onCreate", "User is not signed in!");
+            finish();
+            Intent i = new Intent(MainActivity.this, AuthenticationActivity.class);
+            startActivity(i);
+        }
+
+        TextView helloUser = findViewById(R.id.hello_user);
+        try{
+            helloUser.setText(AWSMobileClient.getInstance().getUsername());
+        }catch (Exception e){
+            Log.e(TAG, e.getMessage());
+        }
+
         createRide = findViewById(R.id.btn_create_ride);
         createRide.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                    sendNetworkRequest(driverIdToken);
+                    sendNetworkRequest();
             }
         });
 
@@ -82,9 +94,9 @@ public class MainActivity extends AbstractUserPermissions {
             @Override
             public void onClick(View v) {
             AWSMobileClient.getInstance().signOut();
-            finish();
             Intent i = new Intent(MainActivity.this, AuthenticationActivity.class);
             startActivity(i);
+            finish();
             }
         });
     }
@@ -240,7 +252,7 @@ public class MainActivity extends AbstractUserPermissions {
         startActivityForResult(shareToSlack, SHARED_IN_SLACK_REQUEST_CODE);
     }
 
-    private void sendNetworkRequest(String driverIdToken){
+    private void sendNetworkRequest(){
 //        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
 //        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
 //
@@ -257,7 +269,14 @@ public class MainActivity extends AbstractUserPermissions {
         Retrofit retrofit = retrofitConf.build();
 
         FrontendClient retrofitNetworkRequest = retrofit.create(FrontendClient.class);
-        Call<ResponseBody> call = retrofitNetworkRequest.createRide(driverIdToken);
+        String tokenId = "";
+        try{
+            tokenId = AWSMobileClient.getInstance().getTokens().getIdToken().getTokenString();
+        }catch (Exception e){
+            Log.e("tokenId", e.getMessage());
+        }
+
+        Call<ResponseBody> call = retrofitNetworkRequest.createRide(tokenId);
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override

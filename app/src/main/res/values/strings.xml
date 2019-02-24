@@ -10,8 +10,10 @@
     <!-- Edit Text -->
 
     <!-- Text View -->
-    <string name="text_view_username">default_username</string>
+    <string name="username">default_username</string>
     <string name="log_out">Log out</string>
+    <string name="hello_user">Hello User!</string>
+
 
     <!-- Errors -->
     <string name="err_no_perm">Now8 must have permission in order to work</string>
