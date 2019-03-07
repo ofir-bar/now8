@@ -28,6 +28,7 @@
             </intent-filter>
 
         </activity>
+
         <activity
             android:name=".MainActivity">
 
@@ -39,9 +40,9 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="http"
-                    android:host="10.0.0.45"
-                    android:port="8000" />
+                    android:scheme="now8"
+                    android:host="join_ride"
+                    />
             </intent-filter>
 
         </activity>

@@ -10,7 +10,7 @@ public interface FrontendClient {
     @POST("create-ride/")
     Call<ResponseBody> createRide(@Header("Authorization") String driverIdToken);
 
-    @POST("join_ride/{usernameTextView}/{location}/{uid}")
-    Call<ResponseBody> joinRide(@Path("usernameTextView") String username, @Path("location")String location, @Path("uid") String uid);
+    @POST("join_ride/{ride_uid}")
+    Call<ResponseBody> joinRide(@Header("Authorization") String passengerIdToken, @Path("ride_uid") String rideUID);
 
 }

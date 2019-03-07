@@ -2,13 +2,16 @@ package com.now8.tool;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,10 +47,6 @@ public class MainActivity extends AbstractUserPermissions {
     private static final String AWS_BASE_URL = "https://i4lyu11ra8.execute-api.eu-west-1.amazonaws.com/development/";
     private static final String GOOGLE_MAPS_API_KEY = "AIzaSyCZi1vM-znzbHeys2suFJPeBJP5giqyS2U";
     private static final String GOOGLE_MAPS_DISTANCE_MATRIX_BASE_URL = "https://maps.googleapis.com/maps/api/distancematrix/" + "json?";
-
-
-
-
 
     private Location initialLocation;
     private Button createRide;
@@ -99,6 +98,20 @@ public class MainActivity extends AbstractUserPermissions {
             finish();
             }
         });
+
+        if(handleJoinRideRequest() != null){
+            try{
+                String fullJoinRideRequest = handleJoinRideRequest();
+                String rideUID = stripRideUIDFromFullJoinRideRequest(fullJoinRideRequest);
+                joinRideAlertDialog(this, rideUID);
+
+            }catch (NullPointerException e){
+                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+
+        }
+
+
     }
 
     @Override
@@ -246,11 +259,93 @@ public class MainActivity extends AbstractUserPermissions {
 
     private void shareRideToSlack(String rideUID) {
         Intent shareToSlack = new Intent(Intent.ACTION_SEND);
+        if(rideUID == null){
+            Toast.makeText(this, "rideUID is null", Toast.LENGTH_SHORT).show();
+            return;
+        }
         shareToSlack.putExtra(Intent.EXTRA_TEXT, rideUID);
         shareToSlack.setPackage(SLACK_PACKAGE);
         shareToSlack.setType("text/plain");
         startActivityForResult(shareToSlack, SHARED_IN_SLACK_REQUEST_CODE);
     }
+
+    private String processRideUID(String rideUID){
+        String SCHEME = "now8";
+        String HOST = "join_ride";
+        return SCHEME + "://" + HOST + "/" + rideUID;
+    }
+
+    private String handleJoinRideRequest(){
+        Intent intent  = this.getIntent();
+        try
+        {
+            String rideUID = intent.getDataString();
+            Toast.makeText(this, "handleJoinRideRequest: " + rideUID, Toast.LENGTH_SHORT).show();
+            return rideUID;
+        }
+        catch (NullPointerException e){
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            return null;
+        }
+    }
+
+    private String stripRideUIDFromFullJoinRideRequest(String fullJoinRideRequest){
+
+        String rideUIDTemp[] = fullJoinRideRequest.split("now8://join_ride/");
+        return rideUIDTemp[1];
+    }
+
+    private void joinRideAlertDialog(Context context, String rideUID){
+        new AlertDialog.Builder(context)
+            .setTitle("Would you like to join this ride?")
+            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                    joinRideNetworkRequest(rideUID);
+                    dialog.dismiss();
+                }
+            })
+            .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                    dialog.cancel();
+                }
+            })
+            .show();
+
+            }
+
+    private void joinRideNetworkRequest(String rideUID){
+
+        Retrofit.Builder retrofitConf = new Retrofit.Builder()
+                .baseUrl(AWS_BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create());
+
+        Retrofit retrofit = retrofitConf.build();
+
+        FrontendClient retrofitNetworkRequest = retrofit.create(FrontendClient.class);
+        String tokenId = "";
+        try{
+            tokenId = AWSMobileClient.getInstance().getTokens().getIdToken().getTokenString();
+        }catch (Exception e){
+            Log.e("tokenId", e.getMessage());
+        }
+
+        Call<ResponseBody> call = retrofitNetworkRequest.joinRide(tokenId, rideUID);
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                Log.e("onResponse", "onResponse Worked");
+
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e(TAG,"onFailure");
+                Log.e(TAG,t.getMessage());
+            }
+        });
+    }
+
 
     private void sendNetworkRequest(){
 //        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
@@ -284,7 +379,7 @@ public class MainActivity extends AbstractUserPermissions {
                 Log.e("onResponse", "onResponse Worked");
 
                 try{
-                    Log.e("onResponse", response.body().getRideUid());
+                    shareRideToSlack(processRideUID(response.body().getRideUid()));
                 }catch (NullPointerException e){
                     Log.e("onResponse", e.getMessage());
                 }
