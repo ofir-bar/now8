@@ -20,17 +20,14 @@
 
         <activity
             android:name=".AuthenticationActivity"
-            android:noHistory="true">
+            android:noHistory="true"
+            android:launchMode="singleTask"
+            >
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
-        </activity>
-
-        <activity
-            android:name=".MainActivity">
 
             <!-- Make now8 to open by external apps, if the user clicks on a link with specific path-->
             <intent-filter android:autoVerify="true">
@@ -44,6 +41,12 @@
                     android:host="join_ride"
                     />
             </intent-filter>
+
+        </activity>
+
+
+        <activity
+            android:name=".MainActivity">
 
         </activity>
 
