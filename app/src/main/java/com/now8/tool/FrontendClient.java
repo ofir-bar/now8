@@ -8,9 +8,9 @@ import retrofit2.http.Path;
 public interface FrontendClient {
 
     @POST("create-ride/")
-    Call<ResponseBody> createRide(@Header("Authorization") String driverIdToken);
+    Call<ResponseBody> createRide();
 
     @POST("join_ride/{ride_uid}")
-    Call<ResponseBody> joinRide(@Header("Authorization") String passengerIdToken, @Path("ride_uid") String rideUID);
+    Call<ResponseBody> joinRide(@Path("ride_uid") String rideUID);
 
 }

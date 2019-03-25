@@ -18,35 +18,14 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+
         <activity
-            android:name=".AuthenticationActivity"
-            android:noHistory="true"
-            android:launchMode="singleTask"
-            >
+            android:name=".MainActivity">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
-            <!-- Make now8 to open by external apps, if the user clicks on a link with specific path-->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:scheme="now8"
-                    android:host="join_ride"
-                    />
-            </intent-filter>
-
-        </activity>
-
-
-        <activity
-            android:name=".MainActivity">
 
         </activity>
 

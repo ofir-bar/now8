@@ -14,8 +14,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.amazonaws.mobile.client.AWSMobileClient;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -66,20 +64,6 @@ public class MainActivity extends AbstractUserPermissions {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (!AWSMobileClient.getInstance().isSignedIn()){
-            Log.e("onCreate", "User is not signed in!");
-            finish();
-            Intent i = new Intent(MainActivity.this, AuthenticationActivity.class);
-            startActivity(i);
-        }
-
-        TextView helloUser = findViewById(R.id.hello_user);
-        try{
-            helloUser.setText(AWSMobileClient.getInstance().getUsername());
-        }catch (Exception e){
-            Log.e(TAG, e.getMessage());
-        }
-
         createRide = findViewById(R.id.btn_create_ride);
         createRide.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -88,21 +72,9 @@ public class MainActivity extends AbstractUserPermissions {
             }
         });
 
-        TextView logOut = findViewById(R.id.log_out);
-        logOut.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            AWSMobileClient.getInstance().signOut();
-            Intent i = new Intent(MainActivity.this, AuthenticationActivity.class);
-            startActivity(i);
-            finish();
-            }
-        });
-
         if(handleJoinRideRequest() != null){
             try{
-                String fullJoinRideRequest = handleJoinRideRequest();
-                String rideUID = stripRideUIDFromFullJoinRideRequest(fullJoinRideRequest);
+                String rideUID = "";
                 joinRideAlertDialog(this, rideUID);
 
             }catch (NullPointerException e){
@@ -110,7 +82,6 @@ public class MainActivity extends AbstractUserPermissions {
             }
 
         }
-
 
     }
 
@@ -269,12 +240,6 @@ public class MainActivity extends AbstractUserPermissions {
         startActivityForResult(shareToSlack, SHARED_IN_SLACK_REQUEST_CODE);
     }
 
-    private String processRideUID(String rideUID){
-        String SCHEME = "now8";
-        String HOST = "join_ride";
-        return SCHEME + "://" + HOST + "/" + rideUID;
-    }
-
     private String handleJoinRideRequest(){
         Intent intent  = this.getIntent();
         try
@@ -287,12 +252,6 @@ public class MainActivity extends AbstractUserPermissions {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
             return null;
         }
-    }
-
-    private String stripRideUIDFromFullJoinRideRequest(String fullJoinRideRequest){
-
-        String rideUIDTemp[] = fullJoinRideRequest.split("now8://join_ride/");
-        return rideUIDTemp[1];
     }
 
     private void joinRideAlertDialog(Context context, String rideUID){
@@ -322,14 +281,8 @@ public class MainActivity extends AbstractUserPermissions {
         Retrofit retrofit = retrofitConf.build();
 
         FrontendClient retrofitNetworkRequest = retrofit.create(FrontendClient.class);
-        String tokenId = "";
-        try{
-            tokenId = AWSMobileClient.getInstance().getTokens().getIdToken().getTokenString();
-        }catch (Exception e){
-            Log.e("tokenId", e.getMessage());
-        }
 
-        Call<ResponseBody> call = retrofitNetworkRequest.joinRide(tokenId, rideUID);
+        Call<ResponseBody> call = retrofitNetworkRequest.joinRide(rideUID);
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override
@@ -364,14 +317,8 @@ public class MainActivity extends AbstractUserPermissions {
         Retrofit retrofit = retrofitConf.build();
 
         FrontendClient retrofitNetworkRequest = retrofit.create(FrontendClient.class);
-        String tokenId = "";
-        try{
-            tokenId = AWSMobileClient.getInstance().getTokens().getIdToken().getTokenString();
-        }catch (Exception e){
-            Log.e("tokenId", e.getMessage());
-        }
 
-        Call<ResponseBody> call = retrofitNetworkRequest.createRide(tokenId);
+        Call<ResponseBody> call = retrofitNetworkRequest.createRide();
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override
@@ -379,7 +326,7 @@ public class MainActivity extends AbstractUserPermissions {
                 Log.e("onResponse", "onResponse Worked");
 
                 try{
-                    shareRideToSlack(processRideUID(response.body().getRideUid()));
+                    shareRideToSlack((response.body().getRideUid()));
                 }catch (NullPointerException e){
                     Log.e("onResponse", e.getMessage());
                 }
