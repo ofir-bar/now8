@@ -21,5 +21,8 @@
     <!-- Information -->
     <string name="info_share_ride_success">Ride Link Shared Successfully</string>
 
+    <!-- Auth0 configurations -->
+    <string name="com_auth0_client_id">CezX45Y7e7wgzyZp2leJ0giQZm8LJBwX</string>
+    <string name="com_auth0_domain">dev-now8.eu.auth0.com</string>
 
 </resources>

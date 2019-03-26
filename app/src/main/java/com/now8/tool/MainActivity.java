@@ -1,12 +1,14 @@
 package com.now8.tool;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
@@ -14,6 +16,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.auth0.android.Auth0;
+import com.auth0.android.authentication.AuthenticationException;
+import com.auth0.android.provider.AuthCallback;
+import com.auth0.android.provider.WebAuthProvider;
+import com.auth0.android.result.Credentials;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -42,12 +50,16 @@ public class MainActivity extends AbstractUserPermissions {
     private static final String SLACK_PACKAGE = "com.Slack";
     private static final int SHARED_IN_SLACK_REQUEST_CODE = 1;
 
-    private static final String AWS_BASE_URL = "https://i4lyu11ra8.execute-api.eu-west-1.amazonaws.com/development/";
+    private static final String AWS_BASE_URL = "https://88xeo0sh9k.execute-api.eu-west-1.amazonaws.com/dev/";
     private static final String GOOGLE_MAPS_API_KEY = "AIzaSyCZi1vM-znzbHeys2suFJPeBJP5giqyS2U";
     private static final String GOOGLE_MAPS_DISTANCE_MATRIX_BASE_URL = "https://maps.googleapis.com/maps/api/distancematrix/" + "json?";
 
     private Location initialLocation;
     private Button createRide;
+
+    private TextView token;
+    private Auth0 auth0;
+
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -63,6 +75,18 @@ public class MainActivity extends AbstractUserPermissions {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        token = findViewById(R.id.token);
+        Button loginButton = findViewById(R.id.loginButton);
+        loginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                login();
+            }
+        });
+        auth0 = new Auth0(this);
+        auth0.setOIDCConformant(true);
+
 
         createRide = findViewById(R.id.btn_create_ride);
         createRide.setOnClickListener(new View.OnClickListener() {
@@ -282,7 +306,7 @@ public class MainActivity extends AbstractUserPermissions {
 
         FrontendClient retrofitNetworkRequest = retrofit.create(FrontendClient.class);
 
-        Call<ResponseBody> call = retrofitNetworkRequest.joinRide(rideUID);
+        Call<ResponseBody> call = retrofitNetworkRequest.joinRide("some", rideUID);
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override
@@ -301,15 +325,6 @@ public class MainActivity extends AbstractUserPermissions {
 
 
     private void sendNetworkRequest(){
-//        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-//        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
-//
-//        OkHttpClient.Builder okHttpBuilder = new OkHttpClient.Builder();
-//        // avoid logging network data (may be sensitive info) in production
-//            if(BuildConfig.DEBUG){
-//                okHttpBuilder.addInterceptor(logging);
-//            }
-
         Retrofit.Builder retrofitConf = new Retrofit.Builder()
                         .baseUrl(AWS_BASE_URL)
                         .addConverterFactory(GsonConverterFactory.create());
@@ -318,7 +333,7 @@ public class MainActivity extends AbstractUserPermissions {
 
         FrontendClient retrofitNetworkRequest = retrofit.create(FrontendClient.class);
 
-        Call<ResponseBody> call = retrofitNetworkRequest.createRide();
+        Call<ResponseBody> call = retrofitNetworkRequest.createRide("someToken");
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override
@@ -338,6 +353,44 @@ public class MainActivity extends AbstractUserPermissions {
                 Log.e(TAG,t.getMessage());
             }
         });
+    }
+
+    private void login() {
+        token.setText("Not logged in");
+        WebAuthProvider.init(auth0)
+                .withScheme("demo")
+                .withAudience(String.format("https://%s/userinfo", getString(R.string.com_auth0_domain)))
+                .start(MainActivity.this, new AuthCallback() {
+                    @Override
+                    public void onFailure(@NonNull final Dialog dialog) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                dialog.show();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(final AuthenticationException exception) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(MainActivity.this, "Error: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onSuccess(@NonNull final Credentials credentials) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                token.setText("Logged in: " + credentials.getAccessToken());
+                            }
+                        });
+                    }
+                });
     }
 
 }

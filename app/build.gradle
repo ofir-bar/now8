@@ -1,15 +1,15 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.amazonaws.appsync'
 
 android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.now8.tool"
-        minSdkVersion 23
+        minSdkVersion 21
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders = [auth0Domain: "@string/com_auth0_domain", auth0Scheme: "demo"]
     }
     buildTypes {
         release {
@@ -21,6 +21,8 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+
 }
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
@@ -32,10 +34,11 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     implementation 'com.squareup.okhttp3:okhttp:3.12.0'
-    implementation 'com.squareup.okhttp3:logging-interceptor:3.11.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
 
     implementation 'com.google.android.gms:play-services-location:16.0.0'
 
-}
+    implementation 'com.auth0.android:auth0:1.15.1'
 
+
+}
