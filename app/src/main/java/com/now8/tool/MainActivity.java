@@ -47,9 +47,13 @@ public class MainActivity extends AbstractUserPermissions {
 
     private static final int REQUEST_TO_TURN_ON_LOCATION_IN_SETTINGS_DIALOG = 61124;
 
+
     private static final String SLACK_PACKAGE = "com.Slack";
     private static final int SHARED_IN_SLACK_REQUEST_CODE = 1;
 
+    //TODO: do not put the keys in such a place.
+    // 1. is not safe ( I can reverse the code and get all the keys)
+    // 2. Maybe you will have to use different servers (addresses) for different cases.
     private static final String AWS_BASE_URL = "https://88xeo0sh9k.execute-api.eu-west-1.amazonaws.com/dev/";
     private static final String GOOGLE_MAPS_API_KEY = "AIzaSyCZi1vM-znzbHeys2suFJPeBJP5giqyS2U";
     private static final String GOOGLE_MAPS_DISTANCE_MATRIX_BASE_URL = "https://maps.googleapis.com/maps/api/distancematrix/" + "json?";
@@ -72,6 +76,9 @@ public class MainActivity extends AbstractUserPermissions {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
+
+        //TODO : check the Activity lifecycle and see if all the stuff around it should be done in
+        // onCreate or some should move to other places
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -109,6 +116,9 @@ public class MainActivity extends AbstractUserPermissions {
 
     }
 
+    //TODO : do not work with permissions in any activity. Move them to a "BaseActivity" so in all
+    // activities you will need them you will have them without duplicating code
+    // I saw that you have the "AbstractUserPermissions" but you have to deal with the 'results" too.
     @Override
     protected void onRequiredPermissionsGranted(Bundle mainActivityState) {
         Log.d(TAG,"onRequiredPermissionsGranted");
@@ -269,6 +279,7 @@ public class MainActivity extends AbstractUserPermissions {
         try
         {
             String rideUID = intent.getDataString();
+            //TODO : strings to resources
             Toast.makeText(this, "handleJoinRideRequest: " + rideUID, Toast.LENGTH_SHORT).show();
             return rideUID;
         }
@@ -279,6 +290,7 @@ public class MainActivity extends AbstractUserPermissions {
     }
 
     private void joinRideAlertDialog(Context context, String rideUID){
+        //TODO: strings to resources
         new AlertDialog.Builder(context)
             .setTitle("Would you like to join this ride?")
             .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -296,6 +308,8 @@ public class MainActivity extends AbstractUserPermissions {
 
             }
 
+
+            //TODO: retrofit calls and everything should be "in one place"
     private void joinRideNetworkRequest(String rideUID){
 
         Retrofit.Builder retrofitConf = new Retrofit.Builder()
