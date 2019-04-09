@@ -17,13 +17,30 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+        <activity android:name=".MainActivity"
+            android:screenOrientation="portrait"
+            >
 
+
+            <!-- Make now8 to open by external apps, if the user clicks on a link with specific path-->
+
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="now8"
+                    />
+
             </intent-filter>
         </activity>
     </application>
 
 </manifest>
+
+

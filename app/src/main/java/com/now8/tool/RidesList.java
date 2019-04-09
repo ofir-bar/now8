@@ -4,6 +4,6 @@ import java.util.List;
 
 public class RidesList {
 
-    List<ResponseBody> responseBodies;
+    List<Ride> responseBodies;
 
 }

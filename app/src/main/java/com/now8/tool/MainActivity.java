@@ -13,8 +13,6 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.auth0.android.Auth0;
@@ -61,9 +59,8 @@ public class MainActivity extends AbstractUserPermissions {
     private Location initialLocation;
     private Button createRide;
 
-    private TextView token;
     private Auth0 auth0;
-
+    private String userAuthIdToken;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -83,7 +80,6 @@ public class MainActivity extends AbstractUserPermissions {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        token = findViewById(R.id.token);
         Button loginButton = findViewById(R.id.loginButton);
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -320,17 +316,17 @@ public class MainActivity extends AbstractUserPermissions {
 
         FrontendClient retrofitNetworkRequest = retrofit.create(FrontendClient.class);
 
-        Call<ResponseBody> call = retrofitNetworkRequest.joinRide("some", rideUID);
+        Call<Ride> call = retrofitNetworkRequest.joinRide(userAuthIdToken, rideUID);
 
-        call.enqueue(new Callback<ResponseBody>() {
+        call.enqueue(new Callback<Ride>() {
             @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+            public void onResponse(Call<Ride> call, Response<Ride> response) {
                 Log.e("onResponse", "onResponse Worked");
 
             }
 
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
+            public void onFailure(Call<Ride> call, Throwable t) {
                 Log.e(TAG,"onFailure");
                 Log.e(TAG,t.getMessage());
             }
@@ -347,32 +343,41 @@ public class MainActivity extends AbstractUserPermissions {
 
         FrontendClient retrofitNetworkRequest = retrofit.create(FrontendClient.class);
 
-        Call<ResponseBody> call = retrofitNetworkRequest.createRide("someToken");
 
-        call.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                Log.e("onResponse", "onResponse Worked");
+        if (userAuthIdToken != null){
 
-                try{
-                    shareRideToSlack((response.body().getRideUid()));
-                }catch (NullPointerException e){
-                    Log.e("onResponse", e.getMessage());
+            Call<Ride> call = retrofitNetworkRequest.createRide("Bearer " + userAuthIdToken);
+
+            call.enqueue(new Callback<Ride>() {
+                @Override
+                public void onResponse(Call<Ride> call, Response<Ride> response) {
+                    Log.e("onResponse", "onResponse Worked");
+
+                    try{
+                        shareRideToSlack((response.body().getJoinRideUrl()));
+                    }catch (NullPointerException e){
+                        Log.e("onResponse", e.getMessage());
+                    }
                 }
-            }
 
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.e(TAG,"onFailure");
-                Log.e(TAG,t.getMessage());
-            }
-        });
+                @Override
+                public void onFailure(Call<Ride> call, Throwable t) {
+                    Log.e(TAG,"onFailure");
+                    Log.e(TAG,t.getMessage());
+                }
+            });
+        }
+        else {
+            Toast.makeText(this, "User is not logged in", Toast.LENGTH_SHORT).show();
+        }
+
+
     }
 
     private void login() {
-        token.setText("Not logged in");
         WebAuthProvider.init(auth0)
                 .withScheme("demo")
+                .withScope("openid profile")
                 .withAudience(String.format("https://%s/userinfo", getString(R.string.com_auth0_domain)))
                 .start(MainActivity.this, new AuthCallback() {
                     @Override
@@ -400,7 +405,9 @@ public class MainActivity extends AbstractUserPermissions {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                token.setText("Logged in: " + credentials.getAccessToken());
+                                Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_SHORT).show();
+                                Log.e(TAG, credentials.getIdToken());
+                                userAuthIdToken = credentials.getIdToken();
                             }
                         });
                     }
