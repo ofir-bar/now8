@@ -1,4 +1,4 @@
-package com.now8.tool;
+package com.now8.tool.screens.generate_ride;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
@@ -36,25 +36,18 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AbstractUserPermissions {
-    private static final String TAG = "MainActivity";
+import com.now8.tool.AbstractUserPermissions;
+import com.now8.tool.FrontendClient;
+import com.now8.tool.R;
+import com.now8.tool.Ride;
+import com.now8.tool.common.Constants;
+
+public class GenerateRideActivity extends AbstractUserPermissions {
+    private static final String TAG = "GenerateRideActivity";
 
 
     private static final String STATE_OF_SYSTEM_SETTINGS_DIALOG_KEY ="STATE_OF_SYSTEM_SETTINGS_DIALOG_KEY";
     private boolean turnOnLocationInSettingsDialogInForeground = false;
-
-    private static final int REQUEST_TO_TURN_ON_LOCATION_IN_SETTINGS_DIALOG = 61124;
-
-
-    private static final String SLACK_PACKAGE = "com.Slack";
-    private static final int SHARED_IN_SLACK_REQUEST_CODE = 1;
-
-    //TODO: do not put the keys in such a place.
-    // 1. is not safe ( I can reverse the code and get all the keys)
-    // 2. Maybe you will have to use different servers (addresses) for different cases.
-    private static final String AWS_BASE_URL = "https://88xeo0sh9k.execute-api.eu-west-1.amazonaws.com/dev/";
-    private static final String GOOGLE_MAPS_API_KEY = "AIzaSyCZi1vM-znzbHeys2suFJPeBJP5giqyS2U";
-    private static final String GOOGLE_MAPS_DISTANCE_MATRIX_BASE_URL = "https://maps.googleapis.com/maps/api/distancematrix/" + "json?";
 
     private Location initialLocation;
     private Button createRide;
@@ -74,11 +67,8 @@ public class MainActivity extends AbstractUserPermissions {
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
 
-        //TODO : check the Activity lifecycle and see if all the stuff around it should be done in
-        // onCreate or some should move to other places
-
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.generate_ride);
 
         Button loginButton = findViewById(R.id.loginButton);
         loginButton.setOnClickListener(new View.OnClickListener() {
@@ -180,7 +170,7 @@ public class MainActivity extends AbstractUserPermissions {
         if (e instanceof ResolvableApiException) {
             try {
                 //Note: startResolutionForResult calls startActivityForResult, and that opens a turnOnLocationInSettingsDialog Activity
-                ((ResolvableApiException)e).startResolutionForResult(this, REQUEST_TO_TURN_ON_LOCATION_IN_SETTINGS_DIALOG);
+                ((ResolvableApiException)e).startResolutionForResult(this, Constants.REQUEST_TO_TURN_ON_LOCATION_IN_SETTINGS_DIALOG);
             }
             // Couldn't pop a turnOnLocationInSettingsDialog
             catch (IntentSender.SendIntentException intentSenderException) {
@@ -231,7 +221,7 @@ public class MainActivity extends AbstractUserPermissions {
                                     Intent data) {
         Log.d(TAG,"onActivityResult");
 
-        if (requestCode == REQUEST_TO_TURN_ON_LOCATION_IN_SETTINGS_DIALOG) {
+        if (requestCode == Constants.REQUEST_TO_TURN_ON_LOCATION_IN_SETTINGS_DIALOG) {
             turnOnLocationInSettingsDialogInForeground = false; // Avoid showing multiply dialogs. (e.g. due to configuration change - screen rotate)
 
             if (resultCode==RESULT_OK) {
@@ -243,7 +233,7 @@ public class MainActivity extends AbstractUserPermissions {
             }
         }
 
-        else if (requestCode == SHARED_IN_SLACK_REQUEST_CODE){
+        else if (requestCode == Constants.SHARED_IN_SLACK_REQUEST_CODE){
 
             if (resultCode == RESULT_OK){
                 Toast.makeText(this, R.string.info_share_ride_success, Toast.LENGTH_LONG).show();
@@ -265,9 +255,9 @@ public class MainActivity extends AbstractUserPermissions {
             return;
         }
         shareToSlack.putExtra(Intent.EXTRA_TEXT, rideUID);
-        shareToSlack.setPackage(SLACK_PACKAGE);
+        shareToSlack.setPackage(Constants.SLACK_PACKAGE);
         shareToSlack.setType("text/plain");
-        startActivityForResult(shareToSlack, SHARED_IN_SLACK_REQUEST_CODE);
+        startActivityForResult(shareToSlack, Constants.SHARED_IN_SLACK_REQUEST_CODE);
     }
 
     private String handleJoinRideRequest(){
@@ -309,7 +299,7 @@ public class MainActivity extends AbstractUserPermissions {
     private void joinRideNetworkRequest(String rideUID){
 
         Retrofit.Builder retrofitConf = new Retrofit.Builder()
-                .baseUrl(AWS_BASE_URL)
+                .baseUrl(Constants.AWS_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create());
 
         Retrofit retrofit = retrofitConf.build();
@@ -336,7 +326,7 @@ public class MainActivity extends AbstractUserPermissions {
 
     private void sendNetworkRequest(){
         Retrofit.Builder retrofitConf = new Retrofit.Builder()
-                        .baseUrl(AWS_BASE_URL)
+                        .baseUrl(Constants.AWS_BASE_URL)
                         .addConverterFactory(GsonConverterFactory.create());
 
         Retrofit retrofit = retrofitConf.build();
@@ -379,7 +369,7 @@ public class MainActivity extends AbstractUserPermissions {
                 .withScheme("demo")
                 .withScope("openid profile")
                 .withAudience(String.format("https://%s/userinfo", getString(R.string.com_auth0_domain)))
-                .start(MainActivity.this, new AuthCallback() {
+                .start(GenerateRideActivity.this, new AuthCallback() {
                     @Override
                     public void onFailure(@NonNull final Dialog dialog) {
                         runOnUiThread(new Runnable() {
@@ -395,7 +385,7 @@ public class MainActivity extends AbstractUserPermissions {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(MainActivity.this, "Error: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(GenerateRideActivity.this, "Error: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
@@ -405,7 +395,7 @@ public class MainActivity extends AbstractUserPermissions {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(GenerateRideActivity.this, "Success", Toast.LENGTH_SHORT).show();
                                 Log.e(TAG, credentials.getIdToken());
                                 userAuthIdToken = credentials.getIdToken();
                             }
