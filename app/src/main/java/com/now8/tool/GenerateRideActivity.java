@@ -1,4 +1,4 @@
-package com.now8.tool.screens.generate_ride;
+package com.now8.tool;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -25,10 +25,9 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-import com.now8.tool.FrontendClient;
-import com.now8.tool.R;
-import com.now8.tool.Ride;
 import com.now8.tool.common.Constants;
+import com.now8.tool.networking.Now8Api;
+import com.now8.tool.networking.RideSchema;
 
 public class GenerateRideActivity extends FragmentActivity {
     private static final String TAG = "GenerateRideActivity";
@@ -139,19 +138,19 @@ public class GenerateRideActivity extends FragmentActivity {
 
         Retrofit retrofit = retrofitConf.build();
 
-        FrontendClient retrofitNetworkRequest = retrofit.create(FrontendClient.class);
+        Now8Api retrofitNetworkRequest = retrofit.create(Now8Api.class);
 
-        Call<Ride> call = retrofitNetworkRequest.joinRide(userAuthIdToken, rideUID);
+        Call<RideSchema> call = retrofitNetworkRequest.joinRide(userAuthIdToken, rideUID);
 
-        call.enqueue(new Callback<Ride>() {
+        call.enqueue(new Callback<RideSchema>() {
             @Override
-            public void onResponse(Call<Ride> call, Response<Ride> response) {
+            public void onResponse(Call<RideSchema> call, Response<RideSchema> response) {
                 Log.e("onResponse", "onResponse Worked");
 
             }
 
             @Override
-            public void onFailure(Call<Ride> call, Throwable t) {
+            public void onFailure(Call<RideSchema> call, Throwable t) {
                 Log.e(TAG,"onFailure");
                 Log.e(TAG,t.getMessage());
             }
@@ -166,16 +165,16 @@ public class GenerateRideActivity extends FragmentActivity {
 
         Retrofit retrofit = retrofitConf.build();
 
-        FrontendClient retrofitNetworkRequest = retrofit.create(FrontendClient.class);
+        Now8Api retrofitNetworkRequest = retrofit.create(Now8Api.class);
 
 
         if (userAuthIdToken != null){
 
-            Call<Ride> call = retrofitNetworkRequest.createRide("Bearer " + userAuthIdToken);
+            Call<RideSchema> call = retrofitNetworkRequest.createRide("Bearer " + userAuthIdToken);
 
-            call.enqueue(new Callback<Ride>() {
+            call.enqueue(new Callback<RideSchema>() {
                 @Override
-                public void onResponse(Call<Ride> call, Response<Ride> response) {
+                public void onResponse(Call<RideSchema> call, Response<RideSchema> response) {
                     Log.e("onResponse", "onResponse Worked");
 
                     try{
@@ -186,7 +185,7 @@ public class GenerateRideActivity extends FragmentActivity {
                 }
 
                 @Override
-                public void onFailure(Call<Ride> call, Throwable t) {
+                public void onFailure(Call<RideSchema> call, Throwable t) {
                     Log.e(TAG,"onFailure");
                     Log.e(TAG,t.getMessage());
                 }
