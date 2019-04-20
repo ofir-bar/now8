@@ -1,4 +1,4 @@
-package com.now8.tool;
+package com.now8.tool.screens.generate_ride;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -25,6 +25,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import com.now8.tool.R;
 import com.now8.tool.common.Constants;
 import com.now8.tool.networking.Now8Api;
 import com.now8.tool.networking.RideSchema;
