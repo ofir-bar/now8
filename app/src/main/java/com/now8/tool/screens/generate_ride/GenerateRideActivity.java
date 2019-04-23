@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
@@ -25,6 +24,8 @@ import com.now8.tool.screens.common.BaseActivity;
 
 public class GenerateRideActivity extends BaseActivity {
     private static final String TAG = "GenerateRideActivity";
+
+    private Now8Api mNow8Api;
 
     private Button createRide;
 
@@ -111,14 +112,7 @@ public class GenerateRideActivity extends BaseActivity {
 
    //TODO: retrofit calls and everything should be "in one place"
     private void joinRideNetworkRequest(String rideUID){
-
-        Retrofit.Builder retrofitConf = new Retrofit.Builder()
-                .baseUrl(Constants.AWS_BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create());
-
-        Retrofit retrofit = retrofitConf.build();
-
-        Now8Api retrofitNetworkRequest = retrofit.create(Now8Api.class);
+        Now8Api retrofitNetworkRequest = getCompositionRoot().getNow8Api();
 
         Call<RideSchema> call = retrofitNetworkRequest.joinRide(userAuthIdToken, rideUID);
 
@@ -139,19 +133,10 @@ public class GenerateRideActivity extends BaseActivity {
 
 
     private void sendNetworkRequest(){
-        Retrofit.Builder retrofitConf = new Retrofit.Builder()
-                        .baseUrl(Constants.AWS_BASE_URL)
-                        .addConverterFactory(GsonConverterFactory.create());
-
-        Retrofit retrofit = retrofitConf.build();
-
-        Now8Api retrofitNetworkRequest = retrofit.create(Now8Api.class);
-
+        Now8Api retrofitNetworkRequest = getCompositionRoot().getNow8Api();
 
         if (userAuthIdToken != null){
-
             Call<RideSchema> call = retrofitNetworkRequest.createRide("Bearer " + userAuthIdToken);
-
             call.enqueue(new Callback<RideSchema>() {
                 @Override
                 public void onResponse(Call<RideSchema> call, Response<RideSchema> response) {

@@ -5,9 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
-import android.view.View;
+import android.view.LayoutInflater;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -20,27 +19,23 @@ import com.now8.tool.R;
 import com.now8.tool.screens.common.BaseActivity;
 import com.now8.tool.screens.generate_ride.GenerateRideActivity;
 
-public class LoginActivity extends BaseActivity {
+public class LoginActivity extends BaseActivity implements LoginViewMvcImpl.Listener {
     private static final String TAG = "LoginActivity";
 
     private Auth0 auth0;
+    private LoginViewMvcImpl mViewMvc;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.login);
+
+        mViewMvc = new LoginViewMvcImpl(LayoutInflater.from(this), null);
+        mViewMvc.registerListener(this);
 
         auth0 = new Auth0(this);
         auth0.setOIDCConformant(true);
 
-        Button loginButton = findViewById(R.id.loginButton);
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                login();
-            }
-        });
-
+        setContentView(mViewMvc.getRootView());
     }
 
 
@@ -88,4 +83,9 @@ public class LoginActivity extends BaseActivity {
                 });
     }
 
+
+    @Override
+    public void onLoginClicked() {
+        Toast.makeText(this, "Hello World", Toast.LENGTH_SHORT).show();
+    }
 }
