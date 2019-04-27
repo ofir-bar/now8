@@ -13,13 +13,11 @@ import android.widget.Toast;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 import com.now8.tool.R;
-import com.now8.tool.common.Constants;
-import com.now8.tool.networking.Now8Api;
-import com.now8.tool.networking.RideSchema;
+import com.now8.tool.model.common.Constants;
+import com.now8.tool.model.networking.Now8Api;
+import com.now8.tool.model.networking.RideSchema;
 import com.now8.tool.screens.common.BaseActivity;
 
 public class GenerateRideActivity extends BaseActivity {

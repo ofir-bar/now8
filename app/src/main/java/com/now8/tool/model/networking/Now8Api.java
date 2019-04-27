@@ -1,6 +1,4 @@
-package com.now8.tool.networking;
-
-import com.now8.tool.networking.RideSchema;
+package com.now8.tool.model.networking;
 
 import retrofit2.Call;
 import retrofit2.http.Header;

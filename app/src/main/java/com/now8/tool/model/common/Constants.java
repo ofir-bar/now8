@@ -1,4 +1,4 @@
-package com.now8.tool.common;
+package com.now8.tool.model.common;
 
 public final class Constants {
 

@@ -1,7 +1,7 @@
 package com.now8.tool.dependency_injection;
 
-import com.now8.tool.common.Constants;
-import com.now8.tool.networking.Now8Api;
+import com.now8.tool.model.common.Constants;
+import com.now8.tool.model.networking.Now8Api;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;

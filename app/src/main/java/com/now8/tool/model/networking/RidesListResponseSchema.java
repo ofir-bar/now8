@@ -1,4 +1,4 @@
-package com.now8.tool.networking;
+package com.now8.tool.model.networking;
 
 import java.util.List;
 
