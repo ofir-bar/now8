@@ -18,6 +18,9 @@ import com.auth0.android.authentication.AuthenticationException;
 import com.auth0.android.provider.AuthCallback;
 import com.auth0.android.provider.WebAuthProvider;
 import com.auth0.android.result.Credentials;
+import com.now8.tool.model.Constants;
+import com.now8.tool.model.networking.Now8Api;
+import com.now8.tool.model.networking.RideSchema;
 
 
 import retrofit2.Call;
@@ -159,19 +162,19 @@ public class MainActivity extends FragmentActivity {
 
         Retrofit retrofit = retrofitConf.build();
 
-        FrontendClient retrofitNetworkRequest = retrofit.create(FrontendClient.class);
+        Now8Api retrofitNetworkRequest = retrofit.create(Now8Api.class);
 
-        Call<Ride> call = retrofitNetworkRequest.joinRide(userAuthIdToken, rideUID);
+        Call<RideSchema> call = retrofitNetworkRequest.joinRide(userAuthIdToken, rideUID);
 
-        call.enqueue(new Callback<Ride>() {
+        call.enqueue(new Callback<RideSchema>() {
             @Override
-            public void onResponse(Call<Ride> call, Response<Ride> response) {
+            public void onResponse(Call<RideSchema> call, Response<RideSchema> response) {
                 Log.e("onResponse", "onResponse Worked");
 
             }
 
             @Override
-            public void onFailure(Call<Ride> call, Throwable t) {
+            public void onFailure(Call<RideSchema> call, Throwable t) {
                 Log.e(TAG,"onFailure");
                 Log.e(TAG,t.getMessage());
             }
@@ -186,16 +189,16 @@ public class MainActivity extends FragmentActivity {
 
         Retrofit retrofit = retrofitConf.build();
 
-        FrontendClient retrofitNetworkRequest = retrofit.create(FrontendClient.class);
+        Now8Api retrofitNetworkRequest = retrofit.create(Now8Api.class);
 
 
         if (userAuthIdToken != null){
 
-            Call<Ride> call = retrofitNetworkRequest.createRide("Bearer " + userAuthIdToken);
+            Call<RideSchema> call = retrofitNetworkRequest.createRide("Bearer " + userAuthIdToken);
 
-            call.enqueue(new Callback<Ride>() {
+            call.enqueue(new Callback<RideSchema>() {
                 @Override
-                public void onResponse(Call<Ride> call, Response<Ride> response) {
+                public void onResponse(Call<RideSchema> call, Response<RideSchema> response) {
                     Log.e("onResponse", "onResponse Worked");
 
                     try{
@@ -206,7 +209,7 @@ public class MainActivity extends FragmentActivity {
                 }
 
                 @Override
-                public void onFailure(Call<Ride> call, Throwable t) {
+                public void onFailure(Call<RideSchema> call, Throwable t) {
                     Log.e(TAG,"onFailure");
                     Log.e(TAG,t.getMessage());
                 }

@@ -1,10 +1,10 @@
-package com.now8.tool;
+package com.now8.tool.model.networking;
 
 import java.util.List;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class Ride {
+public class RideSchema {
 
     @SerializedName("rideUID")
     @Expose
