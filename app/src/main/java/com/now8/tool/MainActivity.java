@@ -1,6 +1,5 @@
 package com.now8.tool;
 
-import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -20,6 +19,7 @@ import com.auth0.android.provider.AuthCallback;
 import com.auth0.android.provider.WebAuthProvider;
 import com.auth0.android.result.Credentials;
 
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -28,15 +28,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends FragmentActivity {
     private static final String TAG = "MainActivity";
-
-
-    private static final String SLACK_PACKAGE = "com.Slack";
-    private static final int SHARED_IN_SLACK_REQUEST_CODE = 1;
-
-    //TODO: do not put the keys in such a place.
-    // 1. is not safe ( I can reverse the code and get all the keys)
-    // 2. Maybe you will have to use different servers (addresses) for different cases.
-    private static final String AWS_BASE_URL = "https://88xeo0sh9k.execute-api.eu-west-1.amazonaws.com/dev/";
 
     private Button createRide;
 
@@ -97,7 +88,7 @@ public class MainActivity extends FragmentActivity {
                                     Intent data) {
         Log.d(TAG,"onActivityResult");
 
-        if (requestCode == SHARED_IN_SLACK_REQUEST_CODE){
+        if (requestCode == Constants.SHARED_IN_SLACK_REQUEST_CODE){
 
             if (resultCode == RESULT_OK){
                 Toast.makeText(this, R.string.info_share_ride_success, Toast.LENGTH_LONG).show();
@@ -119,9 +110,9 @@ public class MainActivity extends FragmentActivity {
             return;
         }
         shareToSlack.putExtra(Intent.EXTRA_TEXT, rideUID);
-        shareToSlack.setPackage(SLACK_PACKAGE);
+        shareToSlack.setPackage(Constants.SLACK_PACKAGE);
         shareToSlack.setType("text/plain");
-        startActivityForResult(shareToSlack, SHARED_IN_SLACK_REQUEST_CODE);
+        startActivityForResult(shareToSlack, Constants.SHARED_IN_SLACK_REQUEST_CODE);
     }
 
     private String handleJoinRideRequest(){
@@ -163,7 +154,7 @@ public class MainActivity extends FragmentActivity {
     private void joinRideNetworkRequest(String rideUID){
 
         Retrofit.Builder retrofitConf = new Retrofit.Builder()
-                .baseUrl(AWS_BASE_URL)
+                .baseUrl(Constants.AWS_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create());
 
         Retrofit retrofit = retrofitConf.build();
@@ -190,7 +181,7 @@ public class MainActivity extends FragmentActivity {
 
     private void sendNetworkRequest(){
         Retrofit.Builder retrofitConf = new Retrofit.Builder()
-                        .baseUrl(AWS_BASE_URL)
+                        .baseUrl(Constants.AWS_BASE_URL)
                         .addConverterFactory(GsonConverterFactory.create());
 
         Retrofit retrofit = retrofitConf.build();
