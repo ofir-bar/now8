@@ -11,12 +11,7 @@
 
 
     <!-- Errors -->
-    <string name="err_no_perm">Now8 must have permission in order to work</string>
-    <string name="err_location_null">Location returned is null</string> <!-- TODO Change this in production -->
-    <string name="err_location_request_failed">Location request failed</string>
-    <string name="err_user_denied_system_location_turn_on">You must turn on location in your device settings for this app to work</string>
-    <string name="err_failed_to_request_settings_change_dialog">An unexpected error occurred. Please try to turn on your location in your device manually</string>
-    <string name="err_share_ride_fail">Please turn on location in your device settings</string>
+    <string name="err_share_ride_fail">Ride Link Share Failed</string>
 
     <!-- Information -->
     <string name="info_share_ride_success">Ride Link Shared Successfully</string>
