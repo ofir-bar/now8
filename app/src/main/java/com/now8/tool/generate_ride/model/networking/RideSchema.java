@@ -1,4 +1,4 @@
-package com.now8.tool.model.networking;
+package com.now8.tool.generate_ride.model.networking;
 
 import java.util.List;
 import com.google.gson.annotations.Expose;

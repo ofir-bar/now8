@@ -1,4 +1,4 @@
-package com.now8.tool;
+package com.now8.tool.login;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -18,9 +18,10 @@ import com.auth0.android.authentication.AuthenticationException;
 import com.auth0.android.provider.AuthCallback;
 import com.auth0.android.provider.WebAuthProvider;
 import com.auth0.android.result.Credentials;
-import com.now8.tool.model.Constants;
-import com.now8.tool.model.networking.Now8Api;
-import com.now8.tool.model.networking.RideSchema;
+import com.now8.tool.R;
+import com.now8.tool.generate_ride.model.Constants;
+import com.now8.tool.generate_ride.model.networking.Now8Api;
+import com.now8.tool.generate_ride.model.networking.RideSchema;
 
 
 import retrofit2.Call;
@@ -29,8 +30,8 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends FragmentActivity {
-    private static final String TAG = "MainActivity";
+public class LoginActivity extends FragmentActivity {
+    private static final String TAG = "LoginActivity";
 
     private Button createRide;
 
@@ -51,7 +52,7 @@ public class MainActivity extends FragmentActivity {
         // onCreate or some should move to other places
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_login);
 
         Button loginButton = findViewById(R.id.loginButton);
         loginButton.setOnClickListener(new View.OnClickListener() {
@@ -85,27 +86,6 @@ public class MainActivity extends FragmentActivity {
 
     }
 
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode,
-                                    Intent data) {
-        Log.d(TAG,"onActivityResult");
-
-        if (requestCode == Constants.SHARED_IN_SLACK_REQUEST_CODE){
-
-            if (resultCode == RESULT_OK){
-                Toast.makeText(this, R.string.info_share_ride_success, Toast.LENGTH_LONG).show();
-            }
-            else if (resultCode == RESULT_CANCELED){
-                Toast.makeText(this, R.string.err_share_ride_fail, Toast.LENGTH_LONG).show();
-            }
-        }
-
-        else {
-            super.onActivityResult(requestCode, resultCode, data);
-        }
-    }
-
     private void shareRideToSlack(String rideUID) {
         Intent shareToSlack = new Intent(Intent.ACTION_SEND);
         if(rideUID == null){
@@ -132,7 +112,6 @@ public class MainActivity extends FragmentActivity {
             return null;
         }
     }
-
     private void joinRideAlertDialog(Context context, String rideUID){
         //TODO: strings to resources
         new AlertDialog.Builder(context)
@@ -151,7 +130,6 @@ public class MainActivity extends FragmentActivity {
             .show();
 
             }
-
 
             //TODO: retrofit calls and everything should be "in one place"
     private void joinRideNetworkRequest(String rideUID){
@@ -180,8 +158,6 @@ public class MainActivity extends FragmentActivity {
             }
         });
     }
-
-
     private void sendNetworkRequest(){
         Retrofit.Builder retrofitConf = new Retrofit.Builder()
                         .baseUrl(Constants.AWS_BASE_URL)
@@ -227,7 +203,7 @@ public class MainActivity extends FragmentActivity {
                 .withScheme("demo")
                 .withScope("openid profile")
                 .withAudience(String.format("https://%s/userinfo", getString(R.string.com_auth0_domain)))
-                .start(MainActivity.this, new AuthCallback() {
+                .start(LoginActivity.this, new AuthCallback() {
                     @Override
                     public void onFailure(@NonNull final Dialog dialog) {
                         runOnUiThread(new Runnable() {
@@ -243,7 +219,7 @@ public class MainActivity extends FragmentActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(MainActivity.this, "Error: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(LoginActivity.this, "Error: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
@@ -253,7 +229,7 @@ public class MainActivity extends FragmentActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(LoginActivity.this, "Success", Toast.LENGTH_SHORT).show();
                                 Log.e(TAG, credentials.getIdToken());
                                 userAuthIdToken = credentials.getIdToken();
                             }
@@ -262,4 +238,23 @@ public class MainActivity extends FragmentActivity {
                 });
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode,
+                                    Intent data) {
+        Log.d(TAG,"onActivityResult");
+
+        if (requestCode == Constants.SHARED_IN_SLACK_REQUEST_CODE){
+
+            if (resultCode == RESULT_OK){
+                Toast.makeText(this, R.string.info_share_ride_success, Toast.LENGTH_LONG).show();
+            }
+            else if (resultCode == RESULT_CANCELED){
+                Toast.makeText(this, R.string.err_share_ride_fail, Toast.LENGTH_LONG).show();
+            }
+        }
+
+        else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
 }
