@@ -9,7 +9,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -19,9 +18,10 @@ import com.auth0.android.provider.AuthCallback;
 import com.auth0.android.provider.WebAuthProvider;
 import com.auth0.android.result.Credentials;
 import com.now8.tool.R;
-import com.now8.tool.generate_ride.model.Constants;
-import com.now8.tool.generate_ride.model.networking.Now8Api;
-import com.now8.tool.generate_ride.model.networking.RideSchema;
+import com.now8.tool.base.Constants;
+import com.now8.tool.networking.NetworkUtils;
+import com.now8.tool.networking.Now8Api;
+import com.now8.tool.networking.RideSchema;
 
 
 import retrofit2.Call;
@@ -34,6 +34,7 @@ public class LoginActivity extends FragmentActivity {
     private static final String TAG = "LoginActivity";
 
     private Button createRide;
+    private Now8Api retrofitNetworkRequest;
 
     private Auth0 auth0;
     private String userAuthIdToken;
@@ -48,30 +49,19 @@ public class LoginActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
 
-        //TODO : check the Activity lifecycle and see if all the stuff around it should be done in
-        // onCreate or some should move to other places
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
         Button loginButton = findViewById(R.id.loginButton);
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                login();
-            }
-        });
+        loginButton.setOnClickListener(v -> login());
+
         auth0 = new Auth0(this);
         auth0.setOIDCConformant(true);
 
 
         createRide = findViewById(R.id.btn_create_ride);
-        createRide.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                    sendNetworkRequest();
-            }
-        });
+        createRide.setOnClickListener(v -> createRideRequest());
+        retrofitNetworkRequest = NetworkUtils.getNow8Api();
 
         if(handleJoinRideRequest() != null){
             try{
@@ -86,17 +76,6 @@ public class LoginActivity extends FragmentActivity {
 
     }
 
-    private void shareRideToSlack(String rideUID) {
-        Intent shareToSlack = new Intent(Intent.ACTION_SEND);
-        if(rideUID == null){
-            Toast.makeText(this, "rideUID is null", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        shareToSlack.putExtra(Intent.EXTRA_TEXT, rideUID);
-        shareToSlack.setPackage(Constants.SLACK_PACKAGE);
-        shareToSlack.setType("text/plain");
-        startActivityForResult(shareToSlack, Constants.SHARED_IN_SLACK_REQUEST_CODE);
-    }
 
     private String handleJoinRideRequest(){
         Intent intent  = this.getIntent();
@@ -118,7 +97,7 @@ public class LoginActivity extends FragmentActivity {
             .setTitle("Would you like to join this ride?")
             .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int whichButton) {
-                    joinRideNetworkRequest(rideUID);
+                    joinRideRequest(rideUID);
                     dialog.dismiss();
                 }
             })
@@ -130,20 +109,8 @@ public class LoginActivity extends FragmentActivity {
             .show();
 
             }
-
-            //TODO: retrofit calls and everything should be "in one place"
-    private void joinRideNetworkRequest(String rideUID){
-
-        Retrofit.Builder retrofitConf = new Retrofit.Builder()
-                .baseUrl(Constants.AWS_BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create());
-
-        Retrofit retrofit = retrofitConf.build();
-
-        Now8Api retrofitNetworkRequest = retrofit.create(Now8Api.class);
-
+    private void joinRideRequest(String rideUID){
         Call<RideSchema> call = retrofitNetworkRequest.joinRide(userAuthIdToken, rideUID);
-
         call.enqueue(new Callback<RideSchema>() {
             @Override
             public void onResponse(Call<RideSchema> call, Response<RideSchema> response) {
@@ -158,15 +125,8 @@ public class LoginActivity extends FragmentActivity {
             }
         });
     }
-    private void sendNetworkRequest(){
-        Retrofit.Builder retrofitConf = new Retrofit.Builder()
-                        .baseUrl(Constants.AWS_BASE_URL)
-                        .addConverterFactory(GsonConverterFactory.create());
 
-        Retrofit retrofit = retrofitConf.build();
-
-        Now8Api retrofitNetworkRequest = retrofit.create(Now8Api.class);
-
+    private void createRideRequest(){
 
         if (userAuthIdToken != null){
 
@@ -238,6 +198,18 @@ public class LoginActivity extends FragmentActivity {
                 });
     }
 
+
+    private void shareRideToSlack(String rideUID) {
+        Intent shareToSlack = new Intent(Intent.ACTION_SEND);
+        if(rideUID == null){
+            Toast.makeText(this, "rideUID is null", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        shareToSlack.putExtra(Intent.EXTRA_TEXT, rideUID);
+        shareToSlack.setPackage(Constants.SLACK_PACKAGE);
+        shareToSlack.setType("text/plain");
+        startActivityForResult(shareToSlack, Constants.SHARED_IN_SLACK_REQUEST_CODE);
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode,
                                     Intent data) {
