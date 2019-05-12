@@ -1,9 +1,5 @@
 package com.now8.tool.home;
 
-import android.content.Intent;
-import android.util.Log;
-import android.widget.Toast;
-
 import com.now8.tool.networking.NetworkUtils;
 import com.now8.tool.networking.RideSchema;
 
@@ -12,8 +8,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static com.now8.tool.Base.getUSER_ID_TOKEN;
-import static com.now8.tool.Constants.SHARED_IN_SLACK_REQUEST_CODE;
-import static com.now8.tool.Constants.SLACK_PACKAGE;
 
 public class HomePresenter {
     HomeView mView;
@@ -50,6 +44,9 @@ public class HomePresenter {
         }
         else mView.onCreateRideNetworkError();
 }
+    void joinRide(String rideUID){
+        mView.onJoinRideSuccess();
+    }
 
 
 }
