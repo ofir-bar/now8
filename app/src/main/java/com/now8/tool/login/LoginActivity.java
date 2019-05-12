@@ -1,8 +1,10 @@
 package com.now8.tool.login;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
@@ -13,7 +15,7 @@ import com.auth0.android.provider.AuthCallback;
 import com.auth0.android.provider.WebAuthProvider;
 import com.auth0.android.result.Credentials;
 import com.now8.tool.R;
-import com.now8.tool.base.BaseActivity;
+import com.now8.tool.home.HomeActivity;
 import com.now8.tool.networking.NetworkUtils;
 import com.now8.tool.networking.Now8Api;
 import com.now8.tool.networking.RideSchema;
@@ -23,12 +25,15 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class LoginActivity extends BaseActivity {
+import static com.now8.tool.Base.setUSER_ID_TOKEN;
+
+public class LoginActivity extends AppCompatActivity implements LoginView {
     private static final String TAG = "LoginActivity";
 
     private Button createRide;
     private Button loginButton;
     private Now8Api retrofitNetworkRequest;
+    LoginPresentor mPresentor;
 
     private Auth0 auth0;
     private String userAuthIdToken;
@@ -46,6 +51,9 @@ public class LoginActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        mPresentor = new LoginPresentor();
+        mPresentor.attachView(this);
+
         loginButton = findViewById(R.id.loginButton);
         loginButton.setOnClickListener(v -> login());
 
@@ -56,7 +64,8 @@ public class LoginActivity extends BaseActivity {
         createRide.setOnClickListener(v -> createRideRequest());
         retrofitNetworkRequest = NetworkUtils.getNow8Api();
 
-        if(getRideUIDFromJoinRideLink() != null){
+        /*
+          if(getRideUIDFromJoinRideLink() != null){
             try{
                 popJoinRideAlertDialog();
             }catch (NullPointerException e){
@@ -64,6 +73,8 @@ public class LoginActivity extends BaseActivity {
             }
 
         }
+         */
+
 
     }
 
@@ -93,7 +104,7 @@ public class LoginActivity extends BaseActivity {
                 public void onResponse(Call<RideSchema> call, Response<RideSchema> response) {
                     Log.e("onResponse", "onResponse Worked");
                     try{
-                        shareRide((response.body().getJoinRideUrl()));
+                       // shareRide((response.body().getJoinRideUrl()));
                     }catch (NullPointerException e){
                         Log.e("onResponse", e.getMessage());
                     }
@@ -142,13 +153,18 @@ public class LoginActivity extends BaseActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(LoginActivity.this, "Success", Toast.LENGTH_SHORT).show();
                                 Log.e(TAG, credentials.getIdToken());
-                                userAuthIdToken = credentials.getIdToken();
+                                setUSER_ID_TOKEN(credentials.getIdToken());
+                                navigateToHome();
                             }
                         });
                     }
                 });
     }
 
+    @Override
+    public void navigateToHome() {
+    startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+    finish();
+    }
 }
