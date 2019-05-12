@@ -1,6 +1,6 @@
 package com.now8.tool.login;
 
-public class LoginPresentor {
+public class LoginPresenter {
 
     LoginView mView;
 

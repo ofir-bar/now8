@@ -25,18 +25,16 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static com.now8.tool.Base.getUSER_ID_TOKEN;
 import static com.now8.tool.Base.setUSER_ID_TOKEN;
 
 public class LoginActivity extends AppCompatActivity implements LoginView {
     private static final String TAG = "LoginActivity";
 
-    private Button createRide;
     private Button loginButton;
-    private Now8Api retrofitNetworkRequest;
-    LoginPresentor mPresentor;
+    LoginPresenter mPresentor;
 
     private Auth0 auth0;
-    private String userAuthIdToken;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -51,7 +49,7 @@ public class LoginActivity extends AppCompatActivity implements LoginView {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        mPresentor = new LoginPresentor();
+        mPresentor = new LoginPresenter();
         mPresentor.attachView(this);
 
         loginButton = findViewById(R.id.loginButton);
@@ -59,10 +57,6 @@ public class LoginActivity extends AppCompatActivity implements LoginView {
 
         auth0 = new Auth0(this);
         auth0.setOIDCConformant(true);
-
-        createRide = findViewById(R.id.btn_create_ride);
-        createRide.setOnClickListener(v -> createRideRequest());
-        retrofitNetworkRequest = NetworkUtils.getNow8Api();
 
         /*
           if(getRideUIDFromJoinRideLink() != null){
@@ -79,7 +73,7 @@ public class LoginActivity extends AppCompatActivity implements LoginView {
     }
 
     private void joinRideRequest(String rideUID){
-        Call<RideSchema> call = retrofitNetworkRequest.joinRide(userAuthIdToken, rideUID);
+        Call<RideSchema> call = NetworkUtils.getNow8Api().joinRide(getUSER_ID_TOKEN(), rideUID);
         call.enqueue(new Callback<RideSchema>() {
             @Override
             public void onResponse(Call<RideSchema> call, Response<RideSchema> response) {
@@ -93,33 +87,6 @@ public class LoginActivity extends AppCompatActivity implements LoginView {
                 Log.e(TAG,t.getMessage());
             }
         });
-    }
-
-    private void createRideRequest(){
-
-        if (userAuthIdToken != null){
-            Call<RideSchema> call = retrofitNetworkRequest.createRide("Bearer " + userAuthIdToken);
-            call.enqueue(new Callback<RideSchema>() {
-                @Override
-                public void onResponse(Call<RideSchema> call, Response<RideSchema> response) {
-                    Log.e("onResponse", "onResponse Worked");
-                    try{
-                       // shareRide((response.body().getJoinRideUrl()));
-                    }catch (NullPointerException e){
-                        Log.e("onResponse", e.getMessage());
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<RideSchema> call, Throwable t) {
-                    Log.e(TAG,"onFailure");
-                    Log.e(TAG,t.getMessage());
-                }
-            });
-        }
-        else Toast.makeText(this, "User is not logged in", Toast.LENGTH_SHORT).show();
-
-
     }
 
     private void login() {
