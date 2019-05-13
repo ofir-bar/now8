@@ -7,7 +7,7 @@ import retrofit2.http.PUT;
 import retrofit2.http.Path;
 
 public interface Now8Api {
-
+    static final String BEARER = "Bearer ";
     @POST("create_ride/")
     Call<RideSchema> createRide(@Header("Authorization") String driverIdToken);
 

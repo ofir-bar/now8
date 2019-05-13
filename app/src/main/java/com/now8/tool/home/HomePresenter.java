@@ -45,7 +45,20 @@ public class HomePresenter {
         else mView.onCreateRideNetworkError();
 }
     void joinRide(String rideUID){
-        mView.onJoinRideSuccess();
+
+        Call<RideSchema> call = NetworkUtils.getNow8Api().joinRide("Bearer " + getUSER_ID_TOKEN(), rideUID);
+
+        call.enqueue(new Callback<RideSchema>() {
+            @Override
+            public void onResponse(Call<RideSchema> call, Response<RideSchema> response) {
+                mView.onJoinRideSuccess();
+            }
+
+            @Override
+            public void onFailure(Call<RideSchema> call, Throwable t) {
+                mView.onJoinRideFailed();
+            }
+        });
     }
 
 

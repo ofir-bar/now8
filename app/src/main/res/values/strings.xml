@@ -8,15 +8,13 @@
     <string name="home_ride_create_network_error">Network Error: ride creation failed</string>
 
     <string name="home_ride_join_success">Successfully Joined Ride!</string>
+    <string name="home_ride_join_failed">Join ride failed</string>
 
     <string name="home_ride_join_dialog_title">Would you like to join this ride</string>
     <string name="home_ride_join_dialog_response_yes">Yes</string>
     <string name="home_ride_join_dialog_response_no">No</string>
 
     <string name="err_share_ride_fail">Ride Link Share Failed</string>
-
-    <!-- Information -->
-    <string name="info_share_ride_success">Ride Link Shared Successfully</string>
 
     <!-- Auth0 configurations -->
     <string name="com_auth0_client_id">CezX45Y7e7wgzyZp2leJ0giQZm8LJBwX</string>

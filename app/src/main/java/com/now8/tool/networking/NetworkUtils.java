@@ -1,7 +1,9 @@
 package com.now8.tool.networking;
 
 import com.now8.tool.Constants;
+import com.squareup.okhttp.logging.HttpLoggingInterceptor;
 
+import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -10,8 +12,10 @@ public class NetworkUtils {
     private NetworkUtils(){}
 
     private static Retrofit mRetrofit;
+
     private static Retrofit getRetrofit() {
         if (mRetrofit == null) {
+
             mRetrofit = new Retrofit.Builder()
                     .baseUrl(Constants.AWS_BASE_URL)
                     .addConverterFactory(GsonConverterFactory.create())

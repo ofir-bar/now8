@@ -9,6 +9,7 @@ public interface HomeView {
     void onCreateRideNetworkError();
 
     void onJoinRideSuccess();
+    void onJoinRideFailed();
 
     void popJoinRideAlertDialog(Context context, String rideUID);
 

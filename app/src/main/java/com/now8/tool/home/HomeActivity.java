@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
@@ -21,7 +22,7 @@ import static com.now8.tool.Constants.SLACK_PACKAGE;
 public class HomeActivity extends AppCompatActivity implements HomeView{
     private static final String TAG = "HomeActivity";
     HomePresenter mPresenter;
-    Button createRide;
+    FloatingActionButton createRide;
     String rideUID;
 
     @Override
@@ -80,6 +81,11 @@ public class HomeActivity extends AppCompatActivity implements HomeView{
     @Override
     public void onJoinRideSuccess() {
         Toast.makeText(this, R.string.home_ride_join_success, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onJoinRideFailed() {
+        Toast.makeText(this, R.string.home_ride_join_failed, Toast.LENGTH_SHORT).show();
     }
 
     @Override
