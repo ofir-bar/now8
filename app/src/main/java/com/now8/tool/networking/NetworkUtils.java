@@ -1,9 +1,6 @@
 package com.now8.tool.networking;
 
 import com.now8.tool.Constants;
-import com.squareup.okhttp.logging.HttpLoggingInterceptor;
-
-import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 

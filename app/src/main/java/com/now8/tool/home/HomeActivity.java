@@ -8,11 +8,16 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import com.now8.tool.R;
 import com.now8.tool.login.LoginActivity;
+
+import java.util.ArrayList;
 
 import static com.now8.tool.Base.getUSER_ID_TOKEN;
 import static com.now8.tool.Constants.SHARED_IN_SLACK_REQUEST_CODE;
@@ -24,6 +29,9 @@ public class HomeActivity extends AppCompatActivity implements HomeView{
     HomePresenter mPresenter;
     FloatingActionButton createRide;
     String rideUID;
+    ArrayList<String> passengersListData;
+    ListView passengersList;
+    ArrayAdapter<String> adapter;
 
     @Override
     protected void onStart() {
@@ -38,6 +46,7 @@ public class HomeActivity extends AppCompatActivity implements HomeView{
             }
 
         }
+
     }
 
     @Override
@@ -57,6 +66,10 @@ public class HomeActivity extends AppCompatActivity implements HomeView{
         createRide = findViewById(R.id.btn_create_ride);
         createRide.setOnClickListener(v -> mPresenter.createRide());
 
+        passengersListData = new ArrayList<>();
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, passengersListData);
+        passengersList = findViewById(R.id.passengers_list);
+        passengersList.setAdapter(adapter);
     }
 
     @Override
@@ -94,7 +107,7 @@ public class HomeActivity extends AppCompatActivity implements HomeView{
                 .setTitle(R.string.home_ride_join_dialog_title)
                 .setPositiveButton(R.string.home_ride_join_dialog_response_yes, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        mPresenter.joinRide(rideUID);
+                        mPresenter.joinRide("jpyELnRPR0numKeUEpW1");
                         dialog.dismiss();
                     }
                 })
@@ -108,6 +121,9 @@ public class HomeActivity extends AppCompatActivity implements HomeView{
     private String getRideUidFromRideInvite(){
         try
         {
+            Log.e("HomeActivity 1;", this.getIntent().getDataString());
+            Log.e("HomeActivity 2;", HomeActivity.this.getIntent().getDataString());
+
             return this.getIntent().getDataString();
         }
         catch (NullPointerException e){
@@ -130,8 +146,5 @@ public class HomeActivity extends AppCompatActivity implements HomeView{
         shareToSlack.setType("text/plain");
         startActivityForResult(shareToSlack, SHARED_IN_SLACK_REQUEST_CODE);
     }
-
-
-
 
 }
