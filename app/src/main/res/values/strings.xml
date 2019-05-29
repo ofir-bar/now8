@@ -1,25 +1,20 @@
 <resources>
     <string name="app_name">now8</string>
 
+    <!-- Home -->
+    <string name="home_btn_create_ride">CREATE A NEW RIDE</string>
+    <string name="home_ride_create_success">Ride created successfully</string>
+    <string name="home_ride_create_fail">Ride creation failed</string>
+    <string name="home_ride_create_network_error">Network Error: ride creation failed</string>
 
-    <!-- Widgets -->
+    <string name="home_ride_join_success">Successfully Joined Ride!</string>
+    <string name="home_ride_join_failed">Join ride failed</string>
 
-    <!-- Buttons -->
-    <string name="btn_create_ride">CREATE A NEW RIDE</string>
+    <string name="home_ride_join_dialog_title">Would you like to join this ride</string>
+    <string name="home_ride_join_dialog_response_yes">Yes</string>
+    <string name="home_ride_join_dialog_response_no">No</string>
 
-    <!-- Edit Text -->
-
-
-    <!-- Errors -->
-    <string name="err_no_perm">Now8 must have permission in order to work</string>
-    <string name="err_location_null">Location returned is null</string> <!-- TODO Change this in production -->
-    <string name="err_location_request_failed">Location request failed</string>
-    <string name="err_user_denied_system_location_turn_on">You must turn on location in your device settings for this app to work</string>
-    <string name="err_failed_to_request_settings_change_dialog">An unexpected error occurred. Please try to turn on your location in your device manually</string>
-    <string name="err_share_ride_fail">Please turn on location in your device settings</string>
-
-    <!-- Information -->
-    <string name="info_share_ride_success">Ride Link Shared Successfully</string>
+    <string name="err_share_ride_fail">Ride Link Share Failed</string>
 
     <!-- Auth0 configurations -->
     <string name="com_auth0_client_id">CezX45Y7e7wgzyZp2leJ0giQZm8LJBwX</string>

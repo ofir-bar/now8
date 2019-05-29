@@ -17,14 +17,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".MainActivity"
+        <activity android:name=".login.LoginActivity"
             android:screenOrientation="portrait"
             >
-
-
+        </activity>
+        <activity android:name=".home.HomeActivity"
+            android:screenOrientation="portrait"
+            >
             <!-- Make now8 to open by external apps, if the user clicks on a link with specific path-->
-
-
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
